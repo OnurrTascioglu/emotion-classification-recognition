@@ -1,0 +1,1 @@
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\x64\Debug\EmotionClassification.vcxprojAssemblyReference.cache
