@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\onurt\Source\Repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe</FullPath>
+      <FullPath>C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
