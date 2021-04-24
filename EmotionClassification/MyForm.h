@@ -9,7 +9,10 @@
 #include <istream>
 #include <string>
 #include <sstream>
-
+#define IMAGE_WIDTH 48
+#define IMAGE_HEIGHT 48
+#define TOTAL_IMAGE 35888
+#define EMOTION_COUNT 7
 
 
 namespace EmotionClassification {
@@ -35,6 +38,11 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
 
 		   BYTE* raw_intensity;
+	private: System::Windows::Forms::TextBox^ textBox1;
+	private: System::Windows::Forms::Button^ button1;
+		   BYTE* ferImages;
+		   int lineCount = 0;
+		   BYTE* emotionLabel;
 		
 	public:
 
@@ -89,6 +97,8 @@ namespace EmotionClassification {
 			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->richTextBox1 = (gcnew System::Windows::Forms::RichTextBox());
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
+			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
+			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
@@ -147,9 +157,9 @@ namespace EmotionClassification {
 			// 
 			// richTextBox1
 			// 
-			this->richTextBox1->Location = System::Drawing::Point(410, 12);
+			this->richTextBox1->Location = System::Drawing::Point(410, 31);
 			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(1029, 513);
+			this->richTextBox1->Size = System::Drawing::Size(901, 556);
 			this->richTextBox1->TabIndex = 1;
 			this->richTextBox1->Text = L"";
 			// 
@@ -158,20 +168,42 @@ namespace EmotionClassification {
 			this->pictureBox1->Location = System::Drawing::Point(13, 32);
 			this->pictureBox1->Name = L"pictureBox1";
 			this->pictureBox1->Size = System::Drawing::Size(391, 373);
+			this->pictureBox1->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->pictureBox1->TabIndex = 2;
 			this->pictureBox1->TabStop = false;
+			// 
+			// textBox1
+			// 
+			this->textBox1->Location = System::Drawing::Point(1339, 12);
+			this->textBox1->Name = L"textBox1";
+			this->textBox1->RightToLeft = System::Windows::Forms::RightToLeft::No;
+			this->textBox1->Size = System::Drawing::Size(100, 22);
+			this->textBox1->TabIndex = 3;
+			// 
+			// button1
+			// 
+			this->button1->Location = System::Drawing::Point(1339, 40);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(100, 28);
+			this->button1->TabIndex = 4;
+			this->button1->Text = L"ShowImage";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &MyForm::button1_Click);
 			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1451, 573);
+			this->Controls->Add(this->button1);
+			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->pictureBox1);
 			this->Controls->Add(this->richTextBox1);
 			this->Controls->Add(this->menuStrip1);
 			this->MainMenuStrip = this->menuStrip1;
 			this->Name = L"MyForm";
 			this->Text = L"MyForm";
+			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MyForm::MyForm_FormClosing);
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
@@ -246,6 +278,9 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 
 	if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 	{
+		ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT * TOTAL_IMAGE];
+		emotionLabel = new BYTE[TOTAL_IMAGE];
+
 		if ((mystream = openFileDialog1->OpenFile()) != nullptr)
 		{
 
@@ -260,44 +295,64 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 
 			fin.open(inputStr, ios::in);
 
-			// Get the roll number
-			// of which the data is required
-			int rollnum, roll2, count = 0;
-			cout << "Enter the roll number "
-				<< "of the student to display details: ";
-			cin >> rollnum;
 
-			// Read the Data from the file
-			// as String Vector
 			vector<string> row;
-			string line, word, temp;
-			
+			string line, word;
 
-			while (fin >> temp) {
+			int asd=0;
+			int k = 0, count = 0;
+			bool lineBool = 0;
+			int imageIndex = 0;
+			int ferIndex = 0;
+
+
+			while (!fin.eof()) {
 
 				row.clear();
 
-				// read an entire row and
-				// store it in a string variable 'line'
 				std::getline(fin, line);
 
-				// read every column data of a row and
-				// store it in a string variable, 'word'
-				int k = 0;
+				k = 0;
+				count = 0;
 
-				for (int i = 0; i < line.length(); i++) {
-					if (line[i].Equals(' ')) {
-						word = line.substr(k , i-k);
-						row.push_back(word);
+				if (lineBool == 1) {
+					for (int i = 0; i < line.length(); i++) {
+						if (line[i].Equals(',')) {
+							if (count == 0) {
+								word = line.substr(k, i - k);
+								emotionLabel[lineCount] = stoi(word);
+								richTextBox1->Text += emotionLabel[lineCount] + " ";
+							}//take emotions from csv file
 
-						richTextBox1->Text += gcnew String(word.c_str()) + " ";
-						k = i;
+							count++;
+
+							if (count == 1) {
+								k = i + 1;
+							}
+
+							if (count == 2) {
+								word = line.substr(k, i - k);
+								ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
+								ferIndex++;
+							}
+						}
+						if (count == 1) {
+							if (line[i].Equals(' ')) {
+								word = line.substr(k, i - k);
+								ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
+								ferIndex++;
+								k = i;
+							}
+						} // take image from csv file
 					}
+					imageIndex++;
+					lineCount++;
 				}
-				richTextBox1->Text += "\n";
+				else {
+					lineBool = 1;
+				}
+				ferIndex = 0;
 			}
-
-
 
 			//readFile = File::ReadAllText(strfilename);
 			//richTextBox1->Text = readFile;
@@ -305,6 +360,47 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 			mystream->Close();
 		}
 	}
+}
+private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+	delete[] ferImages;
+	delete[] emotionLabel;
+
+}
+private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
+	Int32 myInt = 0;
+
+
+	if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
+		"^[1-9]\d*$"))
+	{
+		myInt = System::Convert::ToInt32(textBox1->Text);
+		if (myInt > lineCount-1) {
+			MessageBox::Show("Number can't be higher than " + (lineCount - 1));
+		}
+		else if (myInt < 0) {
+			MessageBox::Show("Please enter positive number");
+		}
+		else {
+			Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH,IMAGE_HEIGHT);
+			pictureBox1->Image = surface;
+
+			int point = IMAGE_HEIGHT * IMAGE_WIDTH * (myInt - 1);
+
+			Color c;
+			for (int row = 0; row < IMAGE_HEIGHT; row++)
+			{
+				for (int column = 0; column < IMAGE_WIDTH; column++)
+				{
+					c = Color::FromArgb(ferImages[point + row * IMAGE_WIDTH + column], ferImages[point + row * IMAGE_WIDTH + column], ferImages[point + row * IMAGE_WIDTH + column]);
+					surface->SetPixel(column, row, c);
+				}
+			}
+		}
+	}
+	else{
+		MessageBox::Show("Not a number");
+	}
+
 }
 };
 }

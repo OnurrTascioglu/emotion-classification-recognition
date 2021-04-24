@@ -1,4 +1,4 @@
 ﻿  MyForm.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(265,17): warning C4101: 'roll2': unreferenced local variable
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(374,3): warning C4129: 'd': unrecognized character escape sequence
   Image.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
   EmotionClassification.vcxproj -> C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe
