@@ -34,7 +34,7 @@ namespace EmotionClassification {
 	public ref class MyForm : public System::Windows::Forms::Form
 	{
 		String^ readFile;
-		BYTE* buffer;
+		BYTE* bmpColoredImage;
 	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
 
 		   BYTE* raw_intensity;
@@ -157,9 +157,9 @@ namespace EmotionClassification {
 			// 
 			// richTextBox1
 			// 
-			this->richTextBox1->Location = System::Drawing::Point(410, 31);
+			this->richTextBox1->Location = System::Drawing::Point(1228, 302);
 			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(901, 556);
+			this->richTextBox1->Size = System::Drawing::Size(175, 211);
 			this->richTextBox1->TabIndex = 1;
 			this->richTextBox1->Text = L"";
 			// 
@@ -241,27 +241,44 @@ namespace EmotionClassification {
 		LPCTSTR input;
 		CString str;
 		int Width, Height;
+		float resizeX = 0.0, resizeY = 0.0;
 		long Size;
 
 		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
 			str = openFileDialog1->FileName;
 			input = (LPCTSTR)str;
+			float mean = 0.0;
 
 			//BMP Image Reading
-			buffer = LoadBMP(&Width, &Height, &Size, input);
-			raw_intensity = ConvertBMPToIntensity(buffer, Width, Height); // BMP Gray picture
+			bmpColoredImage = LoadBMP(&Width, &Height, &Size, input);
+			raw_intensity = ConvertBMPToIntensity(bmpColoredImage, Width, Height); // BMP Gray picture
 
-			pictureBox1->Width = Width;
-			pictureBox1->Height = Height;
+			BYTE* buffer = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
 
-			//Display Gray Image into pictureBox2
-			Bitmap^ surface = gcnew Bitmap(pictureBox1->Width, pictureBox1->Height);
+			resizeX = round((float)Width / IMAGE_WIDTH);
+			resizeY = round((float)Height / IMAGE_HEIGHT);
+
+			for (int row = 0; row < IMAGE_HEIGHT; row++) {
+				for (int col = 0; col < IMAGE_WIDTH; col++) {
+					for (int y = 0; y < resizeY; y++) {
+						for (int x = 0; x < resizeX; x++) {
+							mean += raw_intensity[Width * row * (int)resizeY + Width * y + col * (int)resizeX + x];
+						}
+					}
+					mean = mean / (resizeY * resizeX);
+					buffer[IMAGE_WIDTH * row + col] = round(mean);
+					mean = 0.0;
+				}
+			}
+
+			Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
 			pictureBox1->Image = surface;
+			
 			Color c;
 
-			for (int row = 0; row < Height; row++)
-				for (int col = 0; col < Width; col++) {
-					c = Color::FromArgb(*(raw_intensity + row * Width + col), *(raw_intensity + row * Width + col), *(raw_intensity + row * Width + col));
+			for (int row = 0; row < IMAGE_HEIGHT; row++)
+				for (int col = 0; col < IMAGE_WIDTH; col++) {
+					c = Color::FromArgb(buffer[row * IMAGE_WIDTH + col] , buffer[row * IMAGE_WIDTH + col], buffer[row * IMAGE_WIDTH + col]);
 					surface->SetPixel(col, row, c);
 				}
 		}
@@ -321,7 +338,7 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 							if (count == 0) {
 								word = line.substr(k, i - k);
 								emotionLabel[lineCount] = stoi(word);
-								richTextBox1->Text += emotionLabel[lineCount] + " ";
+								richTextBox1->Text += emotionLabel[lineCount] + " \n";
 							}//take emotions from csv file
 
 							count++;
