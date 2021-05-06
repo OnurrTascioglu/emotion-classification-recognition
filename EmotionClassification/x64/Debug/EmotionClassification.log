@@ -1,5 +1,3 @@
-﻿  MyForm.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(391,3): warning C4129: 'd': unrecognized character escape sequence
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(269,45): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
+﻿  Test.cpp
   Image.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
   EmotionClassification.vcxproj -> C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe

@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "image.h"
+#include "Test.h"
 #include "atlstr.h"
 #include <iostream>
 #include <fstream>
@@ -9,6 +10,8 @@
 #include <istream>
 #include <string>
 #include <sstream>
+#include <math.h>
+
 #define IMAGE_WIDTH 48
 #define IMAGE_HEIGHT 48
 #define TOTAL_IMAGE 35888
@@ -35,14 +38,25 @@ namespace EmotionClassification {
 	{
 		String^ readFile;
 		BYTE* bmpColoredImage;
-	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
-
-		   BYTE* raw_intensity;
-	private: System::Windows::Forms::TextBox^ textBox1;
-	private: System::Windows::Forms::Button^ button1;
+	
 		   BYTE* ferImages;
 		   int lineCount = 0;
 		   BYTE* emotionLabel;
+		   BYTE* raw_intensity;
+
+
+		   //statik
+		   float* conv2d;
+		   float* conv2d_1;
+
+
+
+	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
+	private: System::Windows::Forms::TextBox^ textBox1;
+	private: System::Windows::Forms::ToolStripMenuItem^ testToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ runToolStripMenuItem;
+	private: System::Windows::Forms::Button^ button1;
+
 		
 	public:
 
@@ -94,6 +108,8 @@ namespace EmotionClassification {
 			this->weightsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->pictureToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->fer2013DSToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->runToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->richTextBox1 = (gcnew System::Windows::Forms::RichTextBox());
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
@@ -106,7 +122,10 @@ namespace EmotionClassification {
 			// menuStrip1
 			// 
 			this->menuStrip1->ImageScalingSize = System::Drawing::Size(20, 20);
-			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->dosyaToolStripMenuItem });
+			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->dosyaToolStripMenuItem,
+					this->testToolStripMenuItem
+			});
 			this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			this->menuStrip1->Name = L"menuStrip1";
 			this->menuStrip1->Size = System::Drawing::Size(1451, 28);
@@ -151,15 +170,29 @@ namespace EmotionClassification {
 			this->fer2013DSToolStripMenuItem->Text = L"Fer2013 DS";
 			this->fer2013DSToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::fer2013DSToolStripMenuItem_Click);
 			// 
+			// testToolStripMenuItem
+			// 
+			this->testToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->runToolStripMenuItem });
+			this->testToolStripMenuItem->Name = L"testToolStripMenuItem";
+			this->testToolStripMenuItem->Size = System::Drawing::Size(49, 24);
+			this->testToolStripMenuItem->Text = L"Test";
+			// 
+			// runToolStripMenuItem
+			// 
+			this->runToolStripMenuItem->Name = L"runToolStripMenuItem";
+			this->runToolStripMenuItem->Size = System::Drawing::Size(117, 26);
+			this->runToolStripMenuItem->Text = L"Run";
+			this->runToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::runToolStripMenuItem_Click);
+			// 
 			// openFileDialog1
 			// 
 			this->openFileDialog1->FileName = L"openFileDialog1";
 			// 
 			// richTextBox1
 			// 
-			this->richTextBox1->Location = System::Drawing::Point(1228, 302);
+			this->richTextBox1->Location = System::Drawing::Point(1159, 281);
 			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(175, 211);
+			this->richTextBox1->Size = System::Drawing::Size(244, 232);
 			this->richTextBox1->TabIndex = 1;
 			this->richTextBox1->Text = L"";
 			// 
@@ -243,6 +276,10 @@ namespace EmotionClassification {
 		int Width, Height;
 		float resizeX = 0.0, resizeY = 0.0;
 		long Size;
+		int integer = 0;
+		float fraction = 0.0 , tempFrac=0.0;
+		float total = 0.0;
+		int count = 2;
 
 		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
 			str = openFileDialog1->FileName;
@@ -258,29 +295,57 @@ namespace EmotionClassification {
 			resizeX = round((float)Width / IMAGE_WIDTH);
 			resizeY = round((float)Height / IMAGE_HEIGHT);
 
-			for (int row = 0; row < IMAGE_HEIGHT; row++) {
-				for (int col = 0; col < IMAGE_WIDTH; col++) {
-					for (int y = 0; y < resizeY; y++) {
-						for (int x = 0; x < resizeX; x++) {
-							mean += raw_intensity[Width * row * (int)resizeY + Width * y + col * (int)resizeX + x];
-						}
-					}
-					mean = mean / (resizeY * resizeX);
-					buffer[IMAGE_WIDTH * row + col] = round(mean);
-					mean = 0.0;
-				}
+			if (resizeX < 1 || resizeY < 1) {
+				MessageBox::Show("Please choose greater than 48x48 image.");
 			}
+			else {
+				//integer = Width / IMAGE_WIDTH;
+				//fraction = ((float)Width / IMAGE_WIDTH) - (float)integer; // fraction for width
 
-			Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
-			pictureBox1->Image = surface;
-			
-			Color c;
+				//tempFrac = fraction;
 
-			for (int row = 0; row < IMAGE_HEIGHT; row++)
-				for (int col = 0; col < IMAGE_WIDTH; col++) {
-					c = Color::FromArgb(buffer[row * IMAGE_WIDTH + col] , buffer[row * IMAGE_WIDTH + col], buffer[row * IMAGE_WIDTH + col]);
-					surface->SetPixel(col, row, c);
+				//while (true) {
+				//	if (islessequal(tempFrac, 0.1)) {
+				//		break;
+				//	}
+				//	if (isgreaterequal(tempFrac, 0.9)) {
+				//		integer = integer + 1;
+				//		break;
+				//	}
+
+				//	total = fraction * (float)count;
+				//	integer = total;
+				//	tempFrac = total - (float)integer;
+				//	count++;
+				//}
+
+
+				for (int row = 0; row < IMAGE_HEIGHT; row++) {
+					for (int col = 0; col < IMAGE_WIDTH; col++) {
+						for (int y = 0; y < resizeY; y++) {
+							for (int x = 0; x < resizeX; x++) {
+								mean += raw_intensity[Width * row * (int)resizeY + Width * y + col * (int)resizeX + x];
+								if (col % count == 0) {
+
+								}
+							}
+						}
+						mean = mean / (resizeY * resizeX);
+						buffer[IMAGE_WIDTH * row + col] = round(mean);
+						mean = 0.0;
+					}
 				}
+				Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
+				pictureBox1->Image = surface;
+
+				Color c;
+
+				for (int row = 0; row < IMAGE_HEIGHT; row++)
+					for (int col = 0; col < IMAGE_WIDTH; col++) {
+						c = Color::FromArgb(buffer[row * IMAGE_WIDTH + col], buffer[row * IMAGE_WIDTH + col], buffer[row * IMAGE_WIDTH + col]);
+						surface->SetPixel(col, row, c);
+					}
+			}
 		}
 	}
 private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -305,6 +370,7 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 			fstream fin;
 
 			String^ fileName = openFileDialog1->FileName;
+
 			// Open an existing file
 			IntPtr ip = Marshal::StringToHGlobalAnsi(fileName);
 			const char* inputStr = static_cast<const char*>(ip.ToPointer());
@@ -312,8 +378,6 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 
 			fin.open(inputStr, ios::in);
 
-
-			vector<string> row;
 			string line, word;
 
 			int asd=0;
@@ -324,8 +388,6 @@ private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, S
 
 
 			while (!fin.eof()) {
-
-				row.clear();
 
 				std::getline(fin, line);
 
@@ -417,6 +479,28 @@ private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e
 	else{
 		MessageBox::Show("Not a number");
 	}
+
+}
+private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+
+	conv2d = new float[100];
+	int index = 0;
+
+	// File pointer
+	fstream fin;
+	fin.open("D:\\Ders\\bitirme\\agirlikler\\conv2d.csv", ios::in);
+	string line;
+
+	while (!fin.eof()) {
+		std::getline(fin, line);
+		if (line != "") {
+			conv2d[index] = stof(line);
+			index++;
+		}
+	}
+
+	conv1(raw_intensity,conv2d, IMAGE_WIDTH, IMAGE_HEIGHT,3,4);
+
 
 }
 };
