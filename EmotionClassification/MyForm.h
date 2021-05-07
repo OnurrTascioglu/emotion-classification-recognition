@@ -16,6 +16,8 @@
 #define IMAGE_HEIGHT 48
 #define TOTAL_IMAGE 35888
 #define EMOTION_COUNT 7
+#define MASK_SIZE 3
+#define MASK_COUNT 4
 
 
 namespace EmotionClassification {
@@ -38,26 +40,30 @@ namespace EmotionClassification {
 	{
 		String^ readFile;
 		BYTE* bmpColoredImage;
-	
-		   BYTE* ferImages;
-		   int lineCount = 0;
-		   BYTE* emotionLabel;
-		   BYTE* raw_intensity;
+
+		BYTE* ferImages;
+		int lineCount = 0;
+		BYTE* emotionLabel;
+		BYTE* raw_intensity;
 
 
-		   //statik
-		   float* conv2d;
-		   float* conv2d_1;
-
+		//statik
+		float* conv2d;
+		float* conv2d_1;
+		int ferTextBoxInput = 0;
 
 
 	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
 	private: System::Windows::Forms::TextBox^ textBox1;
 	private: System::Windows::Forms::ToolStripMenuItem^ testToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ runToolStripMenuItem;
+	private: System::Windows::Forms::PictureBox^ pictureBox2;
+	private: System::Windows::Forms::PictureBox^ pictureBox3;
+	private: System::Windows::Forms::PictureBox^ pictureBox4;
+	private: System::Windows::Forms::PictureBox^ pictureBox5;
 	private: System::Windows::Forms::Button^ button1;
 
-		
+
 	public:
 
 		MyForm(void)
@@ -93,7 +99,7 @@ namespace EmotionClassification {
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		System::ComponentModel::Container ^components;
+		System::ComponentModel::Container^ components;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -115,8 +121,16 @@ namespace EmotionClassification {
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->pictureBox2 = (gcnew System::Windows::Forms::PictureBox());
+			this->pictureBox3 = (gcnew System::Windows::Forms::PictureBox());
+			this->pictureBox4 = (gcnew System::Windows::Forms::PictureBox());
+			this->pictureBox5 = (gcnew System::Windows::Forms::PictureBox());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// menuStrip1
@@ -200,7 +214,7 @@ namespace EmotionClassification {
 			// 
 			this->pictureBox1->Location = System::Drawing::Point(13, 32);
 			this->pictureBox1->Name = L"pictureBox1";
-			this->pictureBox1->Size = System::Drawing::Size(391, 373);
+			this->pictureBox1->Size = System::Drawing::Size(353, 347);
 			this->pictureBox1->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->pictureBox1->TabIndex = 2;
 			this->pictureBox1->TabStop = false;
@@ -223,11 +237,51 @@ namespace EmotionClassification {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &MyForm::button1_Click);
 			// 
+			// pictureBox2
+			// 
+			this->pictureBox2->Location = System::Drawing::Point(424, 32);
+			this->pictureBox2->Name = L"pictureBox2";
+			this->pictureBox2->Size = System::Drawing::Size(207, 192);
+			this->pictureBox2->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
+			this->pictureBox2->TabIndex = 5;
+			this->pictureBox2->TabStop = false;
+			// 
+			// pictureBox3
+			// 
+			this->pictureBox3->Location = System::Drawing::Point(637, 32);
+			this->pictureBox3->Name = L"pictureBox3";
+			this->pictureBox3->Size = System::Drawing::Size(207, 192);
+			this->pictureBox3->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
+			this->pictureBox3->TabIndex = 6;
+			this->pictureBox3->TabStop = false;
+			// 
+			// pictureBox4
+			// 
+			this->pictureBox4->Location = System::Drawing::Point(424, 230);
+			this->pictureBox4->Name = L"pictureBox4";
+			this->pictureBox4->Size = System::Drawing::Size(207, 192);
+			this->pictureBox4->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
+			this->pictureBox4->TabIndex = 7;
+			this->pictureBox4->TabStop = false;
+			// 
+			// pictureBox5
+			// 
+			this->pictureBox5->Location = System::Drawing::Point(637, 230);
+			this->pictureBox5->Name = L"pictureBox5";
+			this->pictureBox5->Size = System::Drawing::Size(207, 192);
+			this->pictureBox5->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
+			this->pictureBox5->TabIndex = 8;
+			this->pictureBox5->TabStop = false;
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1451, 573);
+			this->Controls->Add(this->pictureBox5);
+			this->Controls->Add(this->pictureBox4);
+			this->Controls->Add(this->pictureBox3);
+			this->Controls->Add(this->pictureBox2);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->pictureBox1);
@@ -240,6 +294,10 @@ namespace EmotionClassification {
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -277,7 +335,7 @@ namespace EmotionClassification {
 		float resizeX = 0.0, resizeY = 0.0;
 		long Size;
 		int integer = 0;
-		float fraction = 0.0 , tempFrac=0.0;
+		float fraction = 0.0, tempFrac = 0.0;
 		float total = 0.0;
 		int count = 2;
 
@@ -348,160 +406,213 @@ namespace EmotionClassification {
 			}
 		}
 	}
-private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+	private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
-	Stream^ mystream;
-	OpenFileDialog^ openFileDialog1 = gcnew OpenFileDialog;
+		Stream^ mystream;
+		OpenFileDialog^ openFileDialog1 = gcnew OpenFileDialog;
 
-	openFileDialog1->InitialDirectory = "";
-	openFileDialog1->Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-	openFileDialog1->FilterIndex = 2;
-	openFileDialog1->RestoreDirectory = true;
+		openFileDialog1->InitialDirectory = "";
+		openFileDialog1->Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+		openFileDialog1->FilterIndex = 2;
+		openFileDialog1->RestoreDirectory = true;
 
-	if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
-	{
-		ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT * TOTAL_IMAGE];
-		emotionLabel = new BYTE[TOTAL_IMAGE];
-
-		if ((mystream = openFileDialog1->OpenFile()) != nullptr)
+		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
+			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT * TOTAL_IMAGE];
+			emotionLabel = new BYTE[TOTAL_IMAGE];
 
-			// File pointer
-			fstream fin;
+			if ((mystream = openFileDialog1->OpenFile()) != nullptr)
+			{
 
-			String^ fileName = openFileDialog1->FileName;
+				// File pointer
+				fstream fin;
 
-			// Open an existing file
-			IntPtr ip = Marshal::StringToHGlobalAnsi(fileName);
-			const char* inputStr = static_cast<const char*>(ip.ToPointer());
-			std::string input(inputStr);
+				String^ fileName = openFileDialog1->FileName;
 
-			fin.open(inputStr, ios::in);
+				// Open an existing file
+				IntPtr ip = Marshal::StringToHGlobalAnsi(fileName);
+				const char* inputStr = static_cast<const char*>(ip.ToPointer());
+				std::string input(inputStr);
 
-			string line, word;
+				fin.open(inputStr, ios::in);
 
-			int asd=0;
-			int k = 0, count = 0;
-			bool lineBool = 0;
-			int imageIndex = 0;
-			int ferIndex = 0;
+				string line, word;
+
+				int asd = 0;
+				int k = 0, count = 0;
+				bool lineBool = 0;
+				int imageIndex = 0;
+				int ferIndex = 0;
 
 
-			while (!fin.eof()) {
+				while (!fin.eof()) {
 
-				std::getline(fin, line);
+					std::getline(fin, line);
 
-				k = 0;
-				count = 0;
+					k = 0;
+					count = 0;
 
-				if (lineBool == 1) {
-					for (int i = 0; i < line.length(); i++) {
-						if (line[i].Equals(',')) {
-							if (count == 0) {
-								word = line.substr(k, i - k);
-								emotionLabel[lineCount] = stoi(word);
-								richTextBox1->Text += emotionLabel[lineCount] + " \n";
-							}//take emotions from csv file
+					if (lineBool == 1) {
+						for (int i = 0; i < line.length(); i++) {
+							if (line[i].Equals(',')) {
+								if (count == 0) {
+									word = line.substr(k, i - k);
+									emotionLabel[lineCount] = stoi(word);
+									richTextBox1->Text += emotionLabel[lineCount] + " \n";
+								}//take emotions from csv file
 
-							count++;
+								count++;
 
+								if (count == 1) {
+									k = i + 1;
+								}
+
+								if (count == 2) {
+									word = line.substr(k, i - k);
+									ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
+									ferIndex++;
+								}
+							}
 							if (count == 1) {
-								k = i + 1;
-							}
-
-							if (count == 2) {
-								word = line.substr(k, i - k);
-								ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
-								ferIndex++;
-							}
+								if (line[i].Equals(' ')) {
+									word = line.substr(k, i - k);
+									ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
+									ferIndex++;
+									k = i;
+								}
+							} // take image from csv file
 						}
-						if (count == 1) {
-							if (line[i].Equals(' ')) {
-								word = line.substr(k, i - k);
-								ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
-								ferIndex++;
-								k = i;
-							}
-						} // take image from csv file
+						imageIndex++;
+						lineCount++;
 					}
-					imageIndex++;
-					lineCount++;
+					else {
+						lineBool = 1;
+					}
+					ferIndex = 0;
 				}
-				else {
-					lineBool = 1;
-				}
-				ferIndex = 0;
+
+				//readFile = File::ReadAllText(strfilename);
+				//richTextBox1->Text = readFile;
+
+				mystream->Close();
 			}
-
-			//readFile = File::ReadAllText(strfilename);
-			//richTextBox1->Text = readFile;
-
-			mystream->Close();
 		}
 	}
-}
-private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
-	delete[] ferImages;
-	delete[] emotionLabel;
 
-}
-private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-	Int32 myInt = 0;
+	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
+		Int32 myInt = 0;
 
 
-	if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
-		"^[1-9]\d*$"))
-	{
-		myInt = System::Convert::ToInt32(textBox1->Text);
-		if (myInt > lineCount-1) {
-			MessageBox::Show("Number can't be higher than " + (lineCount - 1));
-		}
-		else if (myInt < 0) {
-			MessageBox::Show("Please enter positive number");
+		if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
+			"^[1-9]\d*$"))
+		{
+			myInt = System::Convert::ToInt32(textBox1->Text);
+
+
+			if (myInt > lineCount - 1) {
+				MessageBox::Show("Number can't be higher than " + (lineCount - 1));
+			}
+			else if (myInt < 0) {
+				MessageBox::Show("Please enter positive number");
+			}
+			else {
+				ferTextBoxInput = myInt - 1;
+
+				Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
+				pictureBox1->Image = surface;
+
+				int point = IMAGE_HEIGHT * IMAGE_WIDTH * (myInt - 1);
+
+				Color c;
+				for (int row = 0; row < IMAGE_HEIGHT; row++)
+				{
+					for (int column = 0; column < IMAGE_WIDTH; column++)
+					{
+						c = Color::FromArgb(ferImages[point + row * IMAGE_WIDTH + column], ferImages[point + row * IMAGE_WIDTH + column], ferImages[point + row * IMAGE_WIDTH + column]);
+						surface->SetPixel(column, row, c);
+					}
+				}
+			}
 		}
 		else {
-			Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH,IMAGE_HEIGHT);
-			pictureBox1->Image = surface;
+			MessageBox::Show("Not a number");
+		}
 
-			int point = IMAGE_HEIGHT * IMAGE_WIDTH * (myInt - 1);
+	}
+	private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
-			Color c;
-			for (int row = 0; row < IMAGE_HEIGHT; row++)
-			{
-				for (int column = 0; column < IMAGE_WIDTH; column++)
-				{
-					c = Color::FromArgb(ferImages[point + row * IMAGE_WIDTH + column], ferImages[point + row * IMAGE_WIDTH + column], ferImages[point + row * IMAGE_WIDTH + column]);
-					surface->SetPixel(column, row, c);
-				}
+		conv2d = new float[100];
+		int index = 0;
+
+
+		// File pointer
+		fstream fin;
+		fin.open("D:\\Ders\\bitirme\\agirlikler\\conv2d.csv", ios::in);
+		string line;
+
+		while (!fin.eof()) {
+			std::getline(fin, line);
+			if (line != "") {
+				conv2d[index] = stof(line);
+				index++;
 			}
 		}
-	}
-	else{
-		MessageBox::Show("Not a number");
-	}
 
-}
-private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT;
+		BYTE* result = new BYTE[size];
 
-	conv2d = new float[100];
-	int index = 0;
+		result = conv1(ferImages, conv2d, IMAGE_WIDTH, IMAGE_HEIGHT, MASK_SIZE, MASK_COUNT, ferTextBoxInput);
 
-	// File pointer
-	fstream fin;
-	fin.open("D:\\Ders\\bitirme\\agirlikler\\conv2d.csv", ios::in);
-	string line;
 
-	while (!fin.eof()) {
-		std::getline(fin, line);
-		if (line != "") {
-			conv2d[index] = stof(line);
-			index++;
+
+
+		Bitmap^ surface = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		pictureBox2->Image = surface;
+
+		Bitmap^ surface2 = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		pictureBox3->Image = surface2;
+
+		Bitmap^ surface3 = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		pictureBox4->Image = surface3;
+
+		Bitmap^ surface4 = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		pictureBox5->Image = surface4;
+
+
+		Color c;
+
+		int rowx = (IMAGE_HEIGHT - MASK_SIZE + 1);
+		int rowy = (IMAGE_WIDTH - MASK_SIZE + 1);
+
+		for (int row = 0; row < rowx; row++)
+		{
+			for (int column = 0; column < rowy; column++)
+			{
+				c = Color::FromArgb(result[row * rowy + column], result[row * rowy + column], result[row * rowy + column]);
+				surface->SetPixel(column, row, c);
+
+				c = Color::FromArgb(result[(rowx * rowy) + row * rowy + column], result[(rowx * rowy) + row * rowy + column], result[(rowx * rowy) + row * rowy + column]);
+				surface2->SetPixel(column, row, c);
+
+				c = Color::FromArgb(result[(rowx * rowy * 2) + row * rowy + column], result[(rowx * rowy * 2) + row * rowy + column], result[(rowx * rowy * 2) + row * rowy + column]);
+				surface3->SetPixel(column, row, c);
+
+				c = Color::FromArgb(result[(rowx * rowy * 3) + row * rowy + column], result[(rowx * rowy * 3) + row * rowy + column], result[(rowx * rowy * 3) + row * rowy + column]);
+				surface4->SetPixel(column, row, c);
+			}
 		}
+
+
+		delete[] result;
+
 	}
-
-	conv1(raw_intensity,conv2d, IMAGE_WIDTH, IMAGE_HEIGHT,3,4);
-
-
-}
-};
+	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+		delete[] ferImages;
+		delete[] emotionLabel;
+		delete[] bmpColoredImage;
+		delete[] raw_intensity;
+		delete[] conv2d;
+		delete[] conv2d_1;
+	}
+	};
 }
