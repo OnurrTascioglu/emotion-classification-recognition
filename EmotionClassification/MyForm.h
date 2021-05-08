@@ -18,6 +18,7 @@
 #define EMOTION_COUNT 7
 #define MASK_SIZE 3
 #define MASK_COUNT 4
+#define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler\\"
 
 
 namespace EmotionClassification {
@@ -502,7 +503,6 @@ namespace EmotionClassification {
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
 		Int32 myInt = 0;
 
-
 		if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
 			"^[1-9]\d*$"))
 		{
@@ -532,6 +532,7 @@ namespace EmotionClassification {
 						surface->SetPixel(column, row, c);
 					}
 				}
+				runToolStripMenuItem_Click(sender,e);
 			}
 		}
 		else {
@@ -544,10 +545,16 @@ namespace EmotionClassification {
 		conv2d = new float[100];
 		int index = 0;
 
-
 		// File pointer
 		fstream fin;
-		fin.open("D:\\Ders\\bitirme\\agirlikler\\conv2d.csv", ios::in);
+
+		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
+		const char* inputStr = static_cast<const char*>(ip.ToPointer());
+		std::string input(inputStr);
+
+		string filePath = input + "conv2d.csv";
+
+		fin.open(filePath , ios::in);
 		string line;
 
 		while (!fin.eof()) {
@@ -559,11 +566,33 @@ namespace EmotionClassification {
 		}
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT;
+		int sizeW = (IMAGE_WIDTH - MASK_SIZE + 1);
+		int sizeH = (IMAGE_HEIGHT - MASK_SIZE + 1);
+		
+		float* fResult = new float[size];
+
+		fResult = conv1(ferImages, conv2d, IMAGE_WIDTH, IMAGE_HEIGHT, MASK_SIZE, MASK_COUNT, ferTextBoxInput, sizeW, sizeH);
+		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT);
+		reLU(fResult, sizeW, sizeH, MASK_COUNT);
+
+
+
 		BYTE* result = new BYTE[size];
+		int tempo = 0;
 
-		result = conv1(ferImages, conv2d, IMAGE_WIDTH, IMAGE_HEIGHT, MASK_SIZE, MASK_COUNT, ferTextBoxInput);
 
+		for (int i = 0; i < size; i++) {
+			fResult[i] = fResult[i] * 128 +30;
+			tempo = (int)fResult[i];
+			if (tempo < 0)
+				result[i] = 0;
 
+			else if (tempo > 255)
+				result[i] = 255;
+
+			else
+				result[i] = tempo;
+		}
 
 
 		Bitmap^ surface = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
@@ -586,6 +615,7 @@ namespace EmotionClassification {
 
 		for (int row = 0; row < rowx; row++)
 		{
+
 			for (int column = 0; column < rowy; column++)
 			{
 				c = Color::FromArgb(result[row * rowy + column], result[row * rowy + column], result[row * rowy + column]);
@@ -604,6 +634,7 @@ namespace EmotionClassification {
 
 
 		delete[] result;
+		delete[] fResult;
 
 	}
 	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
