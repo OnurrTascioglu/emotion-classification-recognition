@@ -574,6 +574,7 @@ namespace EmotionClassification {
 		fResult = conv1(ferImages, conv2d, IMAGE_WIDTH, IMAGE_HEIGHT, MASK_SIZE, MASK_COUNT, ferTextBoxInput, sizeW, sizeH);
 		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT);
+		maxPooling(fResult, sizeW, sizeH, MASK_COUNT, 2, 2);
 
 
 

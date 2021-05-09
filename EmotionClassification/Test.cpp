@@ -2,11 +2,11 @@
 #include <cmath>
 
 
-float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSize, int maskCount , int imageCount, int& sizeW, int& sizeH) {
+float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSize, int maskCount, int imageCount, int& sizeW, int& sizeH) {
 
 
-	
-	
+
+
 	int rMatrixWidth = width - maskSize + 1;
 	int rMatrixHeight = height - maskSize + 1;
 
@@ -15,7 +15,7 @@ float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSi
 	float* resultImages = new float[maskCount * rMatrixWidth * rMatrixHeight];
 	BYTE* image = new BYTE[width * height];
 	//BYTE* bResultImages = new BYTE[maskCount * rMatrixWidth * rMatrixHeight];
-	
+
 	for (int i = 0; i < width * height; i++) {
 		image[i] = inputImage[(imageCount * width * height) + i];
 	}
@@ -32,8 +32,8 @@ float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSi
 
 
 	for (int m = 0; m < maskCount; m++) {
-		for (int i = 0; i < rMatrixWidth; i++) {
-			for (int j = 0; j < rMatrixHeight; j++) {
+		for (int i = 0; i < rMatrixHeight; i++) {
+			for (int j = 0; j < rMatrixWidth; j++) {
 				for (int k = 0; k < maskSize * maskSize; k++) {
 					int mCol = k % maskSize;
 					int mRow = k / maskSize;
@@ -77,16 +77,15 @@ float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSi
 	return resultImages;
 }
 
-float* batchNormalization(float* feature, int width, int height , int maskCount) { //Batch normalize yöntemi
+float* batchNormalization(float* feature, int width, int height, int featureCount) { //Batch normalize yöntemi
 
 	float sum = 0.0;// aritmetik ortalama için
 	float sDeviation = 0.0; // standart sapma için
 
-	int a;
-	for (int m = 0; m < maskCount; m++) {
+	for (int m = 0; m < featureCount; m++) {
 		for (int i = 0; i < width * height; i++)
 		{
-			sum += feature[(m*width*height) + i];
+			sum += feature[(m * width * height) + i];
 		}
 		sum = sum / (float)(width * height); // aritmetik ortalama alýnýr
 
@@ -100,7 +99,6 @@ float* batchNormalization(float* feature, int width, int height , int maskCount)
 		{
 			feature[(m * width * height) + i] = (feature[(m * width * height) + i] - sum) / sDeviation;
 			if (isgreaterequal(feature[(m * width * height) + i], 2)) {
-				a++;
 			}
 		}
 		sum = 0.0;
@@ -110,11 +108,39 @@ float* batchNormalization(float* feature, int width, int height , int maskCount)
 	return feature;
 }
 
-float* reLU(float* feature,int width,int height , int maskCount) {
-	for (int i = 0; i < width * height * maskCount; i++) {
-		if (islessequal(feature[i] , 0.0)) {
+float* reLU(float* feature, int width, int height, int featureCount) {
+	for (int i = 0; i < width * height * featureCount; i++) {
+		if (islessequal(feature[i], 0.0)) {
 			feature[i] = 0.0;
 		}
 	}
 	return feature;
+}
+
+float* maxPooling(float* feature, int width, int height, int  featureCount, int pool, int stride) {
+
+	float* poolingResult = new float[(width / stride) * (height / stride)];
+	float max = 0.0;
+	float temp = 0.0;
+
+	for (int m = 0; m < featureCount; m++) {
+		for (int row = 0; row < height / stride; row++) {
+			for (int col = 0; col < width / stride; col++) {
+				for (int k = 0; k < pool ; k++) {
+					for (int n = 0; n < pool; n++) {
+						temp = feature[m * width * height + row * width * stride + col * stride + k * width + n];
+						if (isgreater(temp,max)) {
+							max = temp;
+						}
+					}
+				}
+				poolingResult[(row * width / stride) + col] = max;
+				max = 0.0;
+				temp = 0.0;
+			}
+		}
+	}
+
+
+	return poolingResult;
 }
