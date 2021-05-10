@@ -566,8 +566,8 @@ namespace EmotionClassification {
 		}
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT;
-		int sizeW = (IMAGE_WIDTH - MASK_SIZE + 1);
-		int sizeH = (IMAGE_HEIGHT - MASK_SIZE + 1);
+		int sizeW = IMAGE_WIDTH;
+		int sizeH = IMAGE_HEIGHT;
 		
 		float* fResult = new float[size];
 
@@ -575,7 +575,9 @@ namespace EmotionClassification {
 		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT);
 		maxPooling(fResult, sizeW, sizeH, MASK_COUNT, 2, 2);
+		maxPooling(fResult, sizeW, sizeH, MASK_COUNT, 2, 2);
 
+		size = sizeW * sizeH * MASK_COUNT;
 
 
 		BYTE* result = new BYTE[size];
@@ -596,39 +598,37 @@ namespace EmotionClassification {
 		}
 
 
-		Bitmap^ surface = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		Bitmap^ surface = gcnew Bitmap(sizeW, sizeH);
 		pictureBox2->Image = surface;
 
-		Bitmap^ surface2 = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		Bitmap^ surface2 = gcnew Bitmap(sizeW, sizeH);
 		pictureBox3->Image = surface2;
 
-		Bitmap^ surface3 = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		Bitmap^ surface3 = gcnew Bitmap(sizeW, sizeH);
 		pictureBox4->Image = surface3;
 
-		Bitmap^ surface4 = gcnew Bitmap((IMAGE_WIDTH - MASK_SIZE + 1), (IMAGE_HEIGHT - MASK_SIZE + 1));
+		Bitmap^ surface4 = gcnew Bitmap(sizeW, sizeH);
 		pictureBox5->Image = surface4;
 
 
 		Color c;
 
-		int rowx = (IMAGE_HEIGHT - MASK_SIZE + 1);
-		int rowy = (IMAGE_WIDTH - MASK_SIZE + 1);
 
-		for (int row = 0; row < rowx; row++)
+		for (int row = 0; row < sizeH; row++)
 		{
 
-			for (int column = 0; column < rowy; column++)
+			for (int column = 0; column < sizeW; column++)
 			{
-				c = Color::FromArgb(result[row * rowy + column], result[row * rowy + column], result[row * rowy + column]);
+				c = Color::FromArgb(result[row * sizeW + column], result[row * sizeW + column], result[row * sizeW + column]);
 				surface->SetPixel(column, row, c);
 
-				c = Color::FromArgb(result[(rowx * rowy) + row * rowy + column], result[(rowx * rowy) + row * rowy + column], result[(rowx * rowy) + row * rowy + column]);
+				c = Color::FromArgb(result[(sizeH * sizeW) + row * sizeW + column], result[(sizeH * sizeW) + row * sizeW + column], result[(sizeH * sizeW) + row * sizeW + column]);
 				surface2->SetPixel(column, row, c);
 
-				c = Color::FromArgb(result[(rowx * rowy * 2) + row * rowy + column], result[(rowx * rowy * 2) + row * rowy + column], result[(rowx * rowy * 2) + row * rowy + column]);
+				c = Color::FromArgb(result[(sizeH * sizeW * 2) + row * sizeW + column], result[(sizeH * sizeW * 2) + row * sizeW + column], result[(sizeH * sizeW * 2) + row * sizeW + column]);
 				surface3->SetPixel(column, row, c);
 
-				c = Color::FromArgb(result[(rowx * rowy * 3) + row * rowy + column], result[(rowx * rowy * 3) + row * rowy + column], result[(rowx * rowy * 3) + row * rowy + column]);
+				c = Color::FromArgb(result[(sizeH * sizeW * 3) + row * sizeW + column], result[(sizeH * sizeW * 3) + row * sizeW + column], result[(sizeH * sizeW * 3) + row * sizeW + column]);
 				surface4->SetPixel(column, row, c);
 			}
 		}
@@ -636,6 +636,7 @@ namespace EmotionClassification {
 
 		delete[] result;
 		delete[] fResult;
+		index++;
 
 	}
 	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {

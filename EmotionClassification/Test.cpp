@@ -2,7 +2,7 @@
 #include <cmath>
 
 
-float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSize, int maskCount, int imageCount, int& sizeW, int& sizeH) {
+float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSize, int maskCount, int imageCount, int &sizeW, int &sizeH) {
 
 
 
@@ -117,9 +117,9 @@ float* reLU(float* feature, int width, int height, int featureCount) {
 	return feature;
 }
 
-float* maxPooling(float* feature, int width, int height, int  featureCount, int pool, int stride) {
+float* maxPooling(float* feature, int &width, int &height, int  featureCount, int pool, int stride) {
 
-	float* poolingResult = new float[(width / stride) * (height / stride)];
+	float* poolingResult = new float[(width / stride) * (height / stride) * featureCount];
 	float max = 0.0;
 	float temp = 0.0;
 
@@ -128,19 +128,27 @@ float* maxPooling(float* feature, int width, int height, int  featureCount, int 
 			for (int col = 0; col < width / stride; col++) {
 				for (int k = 0; k < pool ; k++) {
 					for (int n = 0; n < pool; n++) {
-						temp = feature[m * width * height + row * width * stride + col * stride + k * width + n];
+						temp = feature[(m * width * height) + row * width * stride + col * stride + k * width + n];
 						if (isgreater(temp,max)) {
 							max = temp;
 						}
 					}
 				}
-				poolingResult[(row * width / stride) + col] = max;
+				poolingResult[(m* (width / stride) * (height / stride))+(row * width / stride) + col] = max;
 				max = 0.0;
 				temp = 0.0;
 			}
 		}
 	}
 
+	width = width / stride;
+	height = height / stride;
 
-	return poolingResult;
+	for (int i = 0; i < width * height * featureCount; i++) {
+		feature[i] = poolingResult[i];
+	}
+
+	delete[] poolingResult;
+
+	return 0;
 }

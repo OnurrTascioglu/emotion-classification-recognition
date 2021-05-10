@@ -3,4 +3,4 @@
 float* conv1(BYTE* image, float* weights, int width, int height, int maskSize, int maskCount, int imageCount ,int &sizeW, int &sizeH);
 float* batchNormalization(float* feature, int width, int height , int featureCount);
 float* reLU(float* feature, int width, int height , int featureCount);
-float* maxPooling(float* feature, int width, int height, int  featureCount, int pool, int stride);
+float* maxPooling(float* feature, int &width, int &height, int  featureCount, int pool, int stride);
