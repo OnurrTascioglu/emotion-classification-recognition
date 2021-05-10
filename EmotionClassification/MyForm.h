@@ -17,7 +17,8 @@
 #define TOTAL_IMAGE 35888
 #define EMOTION_COUNT 7
 #define MASK_SIZE 3
-#define MASK_COUNT 4
+#define MASK_COUNT_FIRST_LAYER 4
+#define MASK_COUNT_HIDDEN_LAYER_1 6
 #define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler\\"
 
 
@@ -49,8 +50,8 @@ namespace EmotionClassification {
 
 
 		//statik
-		float* conv2d;
-		float* conv2d_1;
+		float* convFirstLayerWeights;
+		float* convHiddenLayerWeights;
 		int ferTextBoxInput = 0;
 
 
@@ -379,29 +380,31 @@ namespace EmotionClassification {
 				//}
 
 
-				for (int row = 0; row < IMAGE_HEIGHT; row++) {
-					for (int col = 0; col < IMAGE_WIDTH; col++) {
-						for (int y = 0; y < resizeY; y++) {
-							for (int x = 0; x < resizeX; x++) {
-								mean += raw_intensity[Width * row * (int)resizeY + Width * y + col * (int)resizeX + x];
-								if (col % count == 0) {
+				//for (int row = 0; row < IMAGE_HEIGHT; row++) {
+				//	for (int col = 0; col < IMAGE_WIDTH; col++) {
+				//		for (int y = 0; y < resizeY; y++) {
+				//			for (int x = 0; x < resizeX; x++) {
+				//				mean += raw_intensity[Width * row * (int)resizeY + Width * y + col * (int)resizeX + x];
+				//				if (col % count == 0) {
 
-								}
-							}
-						}
-						mean = mean / (resizeY * resizeX);
-						buffer[IMAGE_WIDTH * row + col] = round(mean);
-						mean = 0.0;
-					}
-				}
-				Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
+				//				}
+				//			}
+				//		}
+				//		mean = mean / (resizeY * resizeX);
+				//		buffer[IMAGE_WIDTH * row + col] = round(mean);
+				//		mean = 0.0;
+				//	}
+				//}
+
+
+				Bitmap^ surface = gcnew Bitmap(Width, Height);
 				pictureBox1->Image = surface;
 
 				Color c;
 
-				for (int row = 0; row < IMAGE_HEIGHT; row++)
-					for (int col = 0; col < IMAGE_WIDTH; col++) {
-						c = Color::FromArgb(buffer[row * IMAGE_WIDTH + col], buffer[row * IMAGE_WIDTH + col], buffer[row * IMAGE_WIDTH + col]);
+				for (int row = 0; row < Height; row++)
+					for (int col = 0; col < Width; col++) {
+						c = Color::FromArgb(raw_intensity[row * Width + col], raw_intensity[row * Width + col], raw_intensity[row * Width + col]);
 						surface->SetPixel(col, row, c);
 					}
 			}
@@ -542,42 +545,33 @@ namespace EmotionClassification {
 	}
 	private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
-		conv2d = new float[100];
-		int index = 0;
-
-		// File pointer
-		fstream fin;
+		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE];
 
 		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
 		const char* inputStr = static_cast<const char*>(ip.ToPointer());
 		std::string input(inputStr);
-
 		string filePath = input + "conv2d.csv";
+		readWeightFromFile(convFirstLayerWeights,filePath);
 
-		fin.open(filePath , ios::in);
-		string line;
+		convHiddenLayerWeights = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE* MASK_SIZE];
+		filePath = input + "conv2d_1.csv";
+		readWeightFromFile(convHiddenLayerWeights, filePath);
 
-		while (!fin.eof()) {
-			std::getline(fin, line);
-			if (line != "") {
-				conv2d[index] = stof(line);
-				index++;
-			}
-		}
 
-		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT;
+		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
 		int sizeW = IMAGE_WIDTH;
 		int sizeH = IMAGE_HEIGHT;
 		
 		float* fResult = new float[size];
 
-		fResult = conv1(ferImages, conv2d, IMAGE_WIDTH, IMAGE_HEIGHT, MASK_SIZE, MASK_COUNT, ferTextBoxInput, sizeW, sizeH);
-		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT);
-		reLU(fResult, sizeW, sizeH, MASK_COUNT);
-		maxPooling(fResult, sizeW, sizeH, MASK_COUNT, 2, 2);
-		maxPooling(fResult, sizeW, sizeH, MASK_COUNT, 2, 2);
+		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
+		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
+		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
+		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
+		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER;
 
-		size = sizeW * sizeH * MASK_COUNT;
+
+
 
 
 		BYTE* result = new BYTE[size];
@@ -636,7 +630,6 @@ namespace EmotionClassification {
 
 		delete[] result;
 		delete[] fResult;
-		index++;
 
 	}
 	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
@@ -644,8 +637,8 @@ namespace EmotionClassification {
 		delete[] emotionLabel;
 		delete[] bmpColoredImage;
 		delete[] raw_intensity;
-		delete[] conv2d;
-		delete[] conv2d_1;
+		delete[] convFirstLayerWeights;
+		delete[] convHiddenLayerWeights;
 	}
 	};
 }

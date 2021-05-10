@@ -1,7 +1,12 @@
 #include <windows.h>
 #include <cmath>
+#include <string>
+#include <fstream>
+#include "atlstr.h"
+
 
 using namespace std;
+using namespace System::Runtime::InteropServices;
 
 BYTE* LoadBMP(int* width, int* height, long* size, LPCTSTR bmpfile)
 {
@@ -195,3 +200,25 @@ BYTE* ConvertIntensityToBMP(BYTE* Buffer, int width, int height, long* newsize)
 
 	return newbuf;
 } //ConvertIntensityToBMP
+
+
+void readWeightFromFile(float* convWeight, string filePath) {
+
+	int index = 0;
+
+	// File pointer
+	fstream fin;
+
+	fin.open(filePath, ios::in);
+	string line;
+
+	while (!fin.eof()) {
+		std::getline(fin, line);
+		if (line != "") {
+			convWeight[index] = stof(line);
+			index++;
+		}
+	}
+	fin.close();
+
+}

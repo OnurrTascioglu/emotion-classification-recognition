@@ -2,9 +2,7 @@
 #include <cmath>
 
 
-float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSize, int maskCount, int imageCount, int &sizeW, int &sizeH) {
-
-
+float* conv1(BYTE* inputImage, float* weights, int &width, int &height, int maskSize, int maskCount, int imageCount) {
 
 
 	int rMatrixWidth = width - maskSize + 1;
@@ -71,10 +69,15 @@ float* conv1(BYTE* inputImage, float* weights, int width, int height, int maskSi
 	delete[] masks;
 	delete[] image;
 
-	sizeW = width - maskSize + 1;
-	sizeH = height - maskSize + 1;
+	width = width - maskSize + 1;
+	height = height - maskSize + 1;
 
 	return resultImages;
+}
+
+float* convHi(float* feature, float* weights, int& fWidth, int& fHeight, int maskSize, int maskCount, int maskDim, int featureCount) {
+
+	return 0;
 }
 
 float* batchNormalization(float* feature, int width, int height, int featureCount) { //Batch normalize yöntemi
@@ -119,9 +122,10 @@ float* reLU(float* feature, int width, int height, int featureCount) {
 
 float* maxPooling(float* feature, int &width, int &height, int  featureCount, int pool, int stride) {
 
-	float* poolingResult = new float[(width / stride) * (height / stride) * featureCount];
+	//float* poolingResult = new float[(width / stride) * (height / stride) * featureCount];
 	float max = 0.0;
 	float temp = 0.0;
+
 
 	for (int m = 0; m < featureCount; m++) {
 		for (int row = 0; row < height / stride; row++) {
@@ -134,7 +138,7 @@ float* maxPooling(float* feature, int &width, int &height, int  featureCount, in
 						}
 					}
 				}
-				poolingResult[(m* (width / stride) * (height / stride))+(row * width / stride) + col] = max;
+				feature[(m* (width / stride) * (height / stride)) + (row * (width / stride)) + col] = max;
 				max = 0.0;
 				temp = 0.0;
 			}
@@ -144,11 +148,6 @@ float* maxPooling(float* feature, int &width, int &height, int  featureCount, in
 	width = width / stride;
 	height = height / stride;
 
-	for (int i = 0; i < width * height * featureCount; i++) {
-		feature[i] = poolingResult[i];
-	}
-
-	delete[] poolingResult;
 
 	return 0;
 }
