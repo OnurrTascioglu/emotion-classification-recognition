@@ -19,6 +19,8 @@
 #define MASK_SIZE 3
 #define MASK_COUNT_FIRST_LAYER 4
 #define MASK_COUNT_HIDDEN_LAYER_1 6
+#define DENSE_HIDDEN_LAYER 128
+
 #define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler\\"
 
 
@@ -51,7 +53,10 @@ namespace EmotionClassification {
 
 		//statik
 		float* convFirstLayerWeights;
-		float* convHiddenLayerWeights;
+		float* convHiddenLayerWeights_1;
+		float* denseFirstLayerWeights;
+		float* denseHiddenLayerWeights_1;
+
 		int ferTextBoxInput = 0;
 
 
@@ -545,31 +550,70 @@ namespace EmotionClassification {
 	}
 	private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
-		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE];
-
+		//------ File Path
 		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
 		const char* inputStr = static_cast<const char*>(ip.ToPointer());
 		std::string input(inputStr);
-		string filePath = input + "conv2d.csv";
-		readWeightFromFile(convFirstLayerWeights,filePath);
+		//------ File Path
 
-		convHiddenLayerWeights = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE* MASK_SIZE];
+
+		//----- input layer cnn
+		string filePath = input + "conv2d.csv";
+		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE];
+		readWeightFromFile(convFirstLayerWeights,filePath); 
+		
+
+		//----- 2. layer cnn
 		filePath = input + "conv2d_1.csv";
-		readWeightFromFile(convHiddenLayerWeights, filePath);
+		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE];
+		readWeightFromFile(convHiddenLayerWeights_1, filePath);
 
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
 		int sizeW = IMAGE_WIDTH;
 		int sizeH = IMAGE_HEIGHT;
 		
+
 		float* fResult = new float[size];
+
 
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
 		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
-		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER;
+		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
 
+
+		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_HIDDEN_LAYER_1];
+		fHiddenResult = convHidden(fResult, convHiddenLayerWeights_1, sizeW, sizeH, MASK_SIZE, MASK_COUNT_HIDDEN_LAYER_1, MASK_COUNT_FIRST_LAYER);
+		size = sizeW * sizeH * MASK_COUNT_HIDDEN_LAYER_1;
+
+		batchNormalization(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
+		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
+		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1, 2, 2);
+
+
+		//----- FullyConnected Layer 1
+		int sizeTemp = MASK_COUNT_HIDDEN_LAYER_1 * sizeW * sizeH;
+		float* denseResult = new float[DENSE_HIDDEN_LAYER];
+		filePath = input + "dense.csv";
+		denseFirstLayerWeights = new float[sizeTemp * DENSE_HIDDEN_LAYER];
+		readWeightFromFile(denseFirstLayerWeights, filePath);
+		denseResult = dense(fHiddenResult, denseFirstLayerWeights, sizeTemp, DENSE_HIDDEN_LAYER);
+
+		batchNormalization(denseResult, DENSE_HIDDEN_LAYER, 1, 1);
+		reLU(denseResult, DENSE_HIDDEN_LAYER, 1, 1);
+
+		//----- FullyConnected Layer 2
+		filePath = input + "dense_1.csv";
+		denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER];
+		readWeightFromFile(denseHiddenLayerWeights_1, filePath);
+		denseResult = dense(denseResult, denseHiddenLayerWeights_1, DENSE_HIDDEN_LAYER, 7);
+
+		richTextBox1->Text = "";
+		for (int i = 0; i < 7; i++) {
+			richTextBox1->Text += denseResult[i] + "\n";
+		}
 
 
 
@@ -579,8 +623,8 @@ namespace EmotionClassification {
 
 
 		for (int i = 0; i < size; i++) {
-			fResult[i] = fResult[i] * 128 +30;
-			tempo = (int)fResult[i];
+			fHiddenResult[i] = fHiddenResult[i] * 128 +30;
+			tempo = (int)fHiddenResult[i];
 			if (tempo < 0)
 				result[i] = 0;
 
@@ -630,6 +674,7 @@ namespace EmotionClassification {
 
 		delete[] result;
 		delete[] fResult;
+		delete[] fHiddenResult;
 
 	}
 	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
@@ -638,7 +683,7 @@ namespace EmotionClassification {
 		delete[] bmpColoredImage;
 		delete[] raw_intensity;
 		delete[] convFirstLayerWeights;
-		delete[] convHiddenLayerWeights;
+		delete[] convHiddenLayerWeights_1;
 	}
 	};
 }
