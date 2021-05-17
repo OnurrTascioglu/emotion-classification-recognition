@@ -576,7 +576,7 @@ namespace EmotionClassification {
 
 		float* fResult = new float[size];
 
-
+		//1. cnn layer
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
 		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
