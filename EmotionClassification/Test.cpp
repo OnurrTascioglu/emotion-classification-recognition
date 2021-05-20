@@ -21,7 +21,7 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 	}
 
 	for (int i = 0; i < maskCount * rMatrixWidth * rMatrixHeight; i++) {
-		resultImages[i] = 0;
+		resultImages[i] = 0.0;
 	}
 
 	for (int i = 0; i < maskSize * maskSize; i++) {
@@ -40,7 +40,7 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 					resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] +=
 						(float)image[(width * i + j) + mRow * width + mCol] * masks[m * (maskSize * maskSize) + k];
 				}
-				resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += BIAS * weights[maskCount * (maskSize * maskSize) + m];
+				resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += (float)BIAS * weights[maskCount * (maskSize * maskSize) + m];
 			}
 		}
 	}
@@ -136,7 +136,7 @@ float* batchNormalizationConv(float* feature, float* batchWeights, int width, in
 
 		for (int i = 0; i < width * height; i++)
 		{
-			sDeviation += pow((feature[(m * width * height) + i] - sum), 2);
+			sDeviation += powf((feature[(m * width * height) + i] - sum), 2);
 		}
 		sDeviation = sqrt(sDeviation / (float)((width * height) - 1));
 

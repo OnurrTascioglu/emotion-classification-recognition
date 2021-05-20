@@ -571,9 +571,6 @@ namespace EmotionClassification {
 		filePath = input + "conv2d_1.csv";
 		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
 		readWeightFromFile(convHiddenLayerWeights_1, filePath);
-		for (int i = 0; i < 20; i++) {
-			richTextBox1->Text += convHiddenLayerWeights_1[i] + " ";
-		}
 
 		//----- 1. batch norm
 		filePath = input + "batch_normalization.csv";
@@ -599,11 +596,13 @@ namespace EmotionClassification {
 
 		//1. cnn layer
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
-		batchNormalizationConv(fResult, batchNormWeight,sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
 
-		/*for (int i = 0; i < MASK_COUNT_HIDDEN_LAYER_1; i++) {
+
+
+		batchNormalizationConv(fResult, batchNormWeight,sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
+
+		richTextBox1->Text = "";
+		for (int i = 0; i < MASK_COUNT_FIRST_LAYER; i++) {
 			richTextBox1->Text += "[ ";
 			for (int row = 0; row < sizeH; row++) {
 				for (int col = 0; col < sizeW; col++) {
@@ -612,7 +611,21 @@ namespace EmotionClassification {
 				richTextBox1->Text += "\n";
 			}
 			richTextBox1->Text += " ] \n";
-		}*/
+		}
+
+		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
+		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
+
+		//for (int i = 0; i < MASK_COUNT_HIDDEN_LAYER_1; i++) {
+		//	richTextBox1->Text += "[ ";
+		//	for (int row = 0; row < sizeH; row++) {
+		//		for (int col = 0; col < sizeW; col++) {
+		//			richTextBox1->Text += fResult[i * sizeW * sizeH + row * sizeW + col] + " ";
+		//		}
+		//		richTextBox1->Text += "\n";
+		//	}
+		//	richTextBox1->Text += " ] \n";
+		//}
 
 		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
 
@@ -643,26 +656,17 @@ namespace EmotionClassification {
 		readWeightFromFile(denseHiddenLayerWeights_1, filePath);
 		denseResult = dense(denseResult, denseHiddenLayerWeights_1, DENSE_HIDDEN_LAYER, 7);
 
-	/*	richTextBox1->Text = "";
-		for (int i = 0; i < 7; i++) {
-			richTextBox1->Text += denseResult[i] + "\n";
-		}*/
-
-
-
-
-
-
-		//for (int i = 0; i < MASK_COUNT_HIDDEN_LAYER_1; i++) {
-		//	richTextBox1->Text += "[ ";
-		//	for (int row = 0; row < sizeH; row++) {
-		//		for (int col = 0; col < sizeW; col++) {
-		//			richTextBox1->Text += fHiddenResult[i * sizeW * sizeH + row * sizeW + col] + " ";
-		//		}
-		//		richTextBox1->Text += "\n";
-		//	}
-		//	richTextBox1->Text += " ] \n";
+		//richTextBox1->Text = "";
+		//for (int i = 0; i < 7; i++) {
+		//	richTextBox1->Text += denseResult[i] + "\n";
 		//}
+
+
+
+
+
+
+
 
 		BYTE* result = new BYTE[size];
 		int tempo = 0;
