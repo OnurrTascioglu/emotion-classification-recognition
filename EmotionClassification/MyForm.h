@@ -56,6 +56,10 @@ namespace EmotionClassification {
 		float* convHiddenLayerWeights_1;
 		float* denseFirstLayerWeights;
 		float* denseHiddenLayerWeights_1;
+		float* batchNormWeight;
+		float* batchNormWeight_1;
+		float* batchNormWeight_2;
+
 
 		int ferTextBoxInput = 0;
 
@@ -211,9 +215,9 @@ namespace EmotionClassification {
 			// 
 			// richTextBox1
 			// 
-			this->richTextBox1->Location = System::Drawing::Point(1159, 281);
+			this->richTextBox1->Location = System::Drawing::Point(878, 143);
 			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(244, 232);
+			this->richTextBox1->Size = System::Drawing::Size(525, 370);
 			this->richTextBox1->TabIndex = 1;
 			this->richTextBox1->Text = L"";
 			// 
@@ -559,15 +563,32 @@ namespace EmotionClassification {
 
 		//----- input layer cnn
 		string filePath = input + "conv2d.csv";
-		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE];
+		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE+ MASK_COUNT_FIRST_LAYER];
 		readWeightFromFile(convFirstLayerWeights,filePath); 
 		
 
 		//----- 2. layer cnn
 		filePath = input + "conv2d_1.csv";
-		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE];
+		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
 		readWeightFromFile(convHiddenLayerWeights_1, filePath);
+		for (int i = 0; i < 20; i++) {
+			richTextBox1->Text += convHiddenLayerWeights_1[i] + " ";
+		}
 
+		//----- 1. batch norm
+		filePath = input + "batch_normalization.csv";
+		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER + MASK_COUNT_FIRST_LAYER];
+		readWeightFromFile(batchNormWeight, filePath);
+
+		//----- 2. batch norm
+		filePath = input + "batch_normalization_1.csv";
+		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 + MASK_COUNT_HIDDEN_LAYER_1];
+		readWeightFromFile(batchNormWeight_1, filePath);
+
+		//----- 3. batch norm
+		filePath = input + "batch_normalization_2.csv";
+		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER + DENSE_HIDDEN_LAYER];
+		readWeightFromFile(batchNormWeight_2, filePath);
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
 		int sizeW = IMAGE_WIDTH;
@@ -578,17 +599,29 @@ namespace EmotionClassification {
 
 		//1. cnn layer
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
-		batchNormalization(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
+		batchNormalizationConv(fResult, batchNormWeight,sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
+
+		/*for (int i = 0; i < MASK_COUNT_HIDDEN_LAYER_1; i++) {
+			richTextBox1->Text += "[ ";
+			for (int row = 0; row < sizeH; row++) {
+				for (int col = 0; col < sizeW; col++) {
+					richTextBox1->Text += fResult[i * sizeW * sizeH + row * sizeW + col] + " ";
+				}
+				richTextBox1->Text += "\n";
+			}
+			richTextBox1->Text += " ] \n";
+		}*/
+
 		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
 
-
+		//2.cnn layer
 		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_HIDDEN_LAYER_1];
 		fHiddenResult = convHidden(fResult, convHiddenLayerWeights_1, sizeW, sizeH, MASK_SIZE, MASK_COUNT_HIDDEN_LAYER_1, MASK_COUNT_FIRST_LAYER);
 		size = sizeW * sizeH * MASK_COUNT_HIDDEN_LAYER_1;
 
-		batchNormalization(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
+		batchNormalizationConv(fHiddenResult, batchNormWeight_1,sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1, 2, 2);
 
@@ -597,30 +630,42 @@ namespace EmotionClassification {
 		int sizeTemp = MASK_COUNT_HIDDEN_LAYER_1 * sizeW * sizeH;
 		float* denseResult = new float[DENSE_HIDDEN_LAYER];
 		filePath = input + "dense.csv";
-		denseFirstLayerWeights = new float[sizeTemp * DENSE_HIDDEN_LAYER];
+		denseFirstLayerWeights = new float[sizeTemp * DENSE_HIDDEN_LAYER + DENSE_HIDDEN_LAYER];
 		readWeightFromFile(denseFirstLayerWeights, filePath);
 		denseResult = dense(fHiddenResult, denseFirstLayerWeights, sizeTemp, DENSE_HIDDEN_LAYER);
 
-		batchNormalization(denseResult, DENSE_HIDDEN_LAYER, 1, 1);
+		batchNormalizationDense(denseResult, batchNormWeight_2, DENSE_HIDDEN_LAYER);
 		reLU(denseResult, DENSE_HIDDEN_LAYER, 1, 1);
 
 		//----- FullyConnected Layer 2
 		filePath = input + "dense_1.csv";
-		denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER];
+		denseHiddenLayerWeights_1 = new float[7 * DENSE_HIDDEN_LAYER + 7];
 		readWeightFromFile(denseHiddenLayerWeights_1, filePath);
 		denseResult = dense(denseResult, denseHiddenLayerWeights_1, DENSE_HIDDEN_LAYER, 7);
 
-		richTextBox1->Text = "";
+	/*	richTextBox1->Text = "";
 		for (int i = 0; i < 7; i++) {
 			richTextBox1->Text += denseResult[i] + "\n";
-		}
+		}*/
 
 
 
+
+
+
+		//for (int i = 0; i < MASK_COUNT_HIDDEN_LAYER_1; i++) {
+		//	richTextBox1->Text += "[ ";
+		//	for (int row = 0; row < sizeH; row++) {
+		//		for (int col = 0; col < sizeW; col++) {
+		//			richTextBox1->Text += fHiddenResult[i * sizeW * sizeH + row * sizeW + col] + " ";
+		//		}
+		//		richTextBox1->Text += "\n";
+		//	}
+		//	richTextBox1->Text += " ] \n";
+		//}
 
 		BYTE* result = new BYTE[size];
 		int tempo = 0;
-
 
 		for (int i = 0; i < size; i++) {
 			fHiddenResult[i] = fHiddenResult[i] * 128 +30;
@@ -684,6 +729,11 @@ namespace EmotionClassification {
 		delete[] raw_intensity;
 		delete[] convFirstLayerWeights;
 		delete[] convHiddenLayerWeights_1;
+		delete[] denseFirstLayerWeights;
+		delete[] denseHiddenLayerWeights_1;
+		delete[] batchNormWeight;
+		delete[] batchNormWeight_1;
+		delete[] batchNormWeight_2;
 	}
 	};
 }
