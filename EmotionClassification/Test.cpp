@@ -14,7 +14,7 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 	float* masks = new float[maskSize * maskSize * maskCount];
 	float* resultImages = new float[maskCount * rMatrixWidth * rMatrixHeight];
 	BYTE* image = new BYTE[width * height];
-	//BYTE* bResultImages = new BYTE[maskCount * rMatrixWidth * rMatrixHeight];
+
 
 	for (int i = 0; i < width * height; i++) {
 		image[i] = inputImage[(imageCount * width * height) + i];
@@ -44,30 +44,6 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 			}
 		}
 	}
-
-	//int max = 0;
-	//int min = 0;
-	//float ratio = 0.0;
-
-	//for (int m = 0; m < maskCount; m++) {
-	//	for (int i = 0; i < rMatrixWidth * rMatrixHeight; i++) {
-	//		if ((int)resultImages[(m * rMatrixWidth * rMatrixHeight) + i] > max) {
-	//			max = resultImages[(m * rMatrixWidth * rMatrixHeight) + i];
-	//		}
-	//		if ((int)resultImages[(m * rMatrixWidth * rMatrixHeight) + i] < min) {
-	//			min = resultImages[(m * rMatrixWidth * rMatrixHeight) + i];
-	//		}
-	//	}
-	//	for (int i = 0; i < rMatrixWidth * rMatrixHeight; i++) {
-	//		resultImages[(m * rMatrixWidth * rMatrixHeight) + i] = resultImages[(m * rMatrixWidth * rMatrixHeight) + i] - (min);
-	//	}
-	//	ratio = (float)(max - min) / 254;
-
-	//	for (int i = 0; i < rMatrixWidth * rMatrixHeight; i++) {
-	//		bResultImages[(m * rMatrixWidth * rMatrixHeight) + i] = resultImages[(m * rMatrixWidth * rMatrixHeight) + i] / ratio;
-	//	}
-	//}
-
 
 	delete[] masks;
 	delete[] image;
@@ -122,7 +98,7 @@ float* convHidden(float* feature, float* weights, int& fWidth, int& fHeight, int
 	return resultImages;
 }
 
-float* batchNormalizationConv(float* feature, float* batchWeights, int width, int height, int featureCount) { //Batch normalize yöntemi
+float* batchNormalization(float* feature, float* batchWeights, int width, int height, int featureCount) { //Batch normalize yöntemi
 
 	float sum = 0.0;// aritmetik ortalama için
 	float sDeviation = 0.0; // standart sapma için
@@ -153,28 +129,38 @@ float* batchNormalizationConv(float* feature, float* batchWeights, int width, in
 	return feature;
 }
 
-float* batchNormalizationDense(float* input, float* batchWeights, int inputSize) {
 
-	float sum = 0.0;// aritmetik ortalama için
+float* batchNormalizationConv(float* feature, float* batchWeights, int width, int height, int featureCount) { //Batch normalize yöntemi
+
 	float sDeviation = 0.0; // standart sapma için
 
-	for (int i = 0; i < inputSize; i++)
-		sum += input[i];
+	for (int m = 0; m < featureCount; m++) {
 
-	sum = sum / (float)(inputSize); // aritmetik ortalama alýnýr
+		sDeviation = sqrt(batchWeights[(featureCount * 3) + m]);
 
-	for (int i = 0; i < inputSize; i++)
-		sDeviation += pow((input[i] - sum), 2);
+		for (int i = 0; i < width * height; i++)
+		{
+			feature[(m * width * height) + i] = (feature[(m * width * height) + i] - batchWeights[featureCount * 2 + m]) / sDeviation;
+			feature[(m * width * height) + i] = feature[(m * width * height) + i] * batchWeights[m] + batchWeights[featureCount + m];
+		}
 
-
-	sDeviation = sqrt(sDeviation / (float)((inputSize)-1));
-
-	for (int i = 0; i < inputSize; i++) {
-		input[i] = (input[i] - sum) / sDeviation;
-		input[i] = input[i] * batchWeights[i] + batchWeights[inputSize + i];
+		sDeviation = 0.0;
 	}
 
+	return feature;
+}
 
+
+float* batchNormalizationDense(float* input, float* batchWeights, int inputSize) {
+
+
+	float sDeviation = 0.0; // standart sapma için
+
+	for (int i = 0; i < inputSize; i++) {
+		sDeviation = sqrt(batchWeights[(inputSize * 3) + i]);
+		input[i] = (input[i] - batchWeights[(inputSize * 2) + i]) / sDeviation;
+		input[i] = input[i] * batchWeights[i] + batchWeights[inputSize + i];
+	}
 	return input;
 }
 
@@ -219,6 +205,25 @@ float* maxPooling(float* feature, int& width, int& height, int  featureCount, in
 	return 0;
 }
 
+float* flatten(float* features, int width, int height, int featureCount) {
+
+	float* flattenFeatures = new float[width * height * featureCount];
+	int count = 0;
+
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int f = 0; f < featureCount; f++) {
+				flattenFeatures[count] = features[f * width * height + i * width + j];
+				count++;
+			}
+		}
+	}
+	for (int i = 0; i < width * height * featureCount; i++)
+		features[i] = flattenFeatures[i];
+
+	return features;
+}
+
 float* dense(float* inputLayer, float* weights, int inputLayerSize, int outputLayerSize) {
 
 	float* outputLayer = new float[outputLayerSize];
@@ -232,7 +237,46 @@ float* dense(float* inputLayer, float* weights, int inputLayerSize, int outputLa
 			outputLayer[i] += inputLayer[j] * weights[j * outputLayerSize + i];
 		}
 		outputLayer[i] += BIAS * weights[inputLayerSize * outputLayerSize + i];
+		int a = 0;
 	}
 
 	return outputLayer;
+}
+
+float* softmax(float* input, int size) {
+
+	/*float sum = 0.0;
+
+	for (int i = 0; i < size; i++)
+	{
+		sum += expf(input[i]);
+	}
+
+	for (int i = 0; i < size; i++)
+	{
+		input[i] = expf(input[i]) / sum;
+	}
+
+	return input;*/
+
+	float m = -INFINITY;
+	for (size_t i = 0; i < size; i++) {
+		if (input[i] > m) {
+			m = input[i];
+		}
+	}
+
+	float sum = 0.0;
+	for (size_t i = 0; i < size; i++) {
+		sum += expf(input[i] - m);
+	}
+
+	float offset = m + logf(sum);
+	for (size_t i = 0; i < size; i++) {
+		input[i] = expf(input[i] - offset);
+	}
+
+
+
+	return input;
 }

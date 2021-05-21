@@ -72,6 +72,7 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::PictureBox^ pictureBox3;
 	private: System::Windows::Forms::PictureBox^ pictureBox4;
 	private: System::Windows::Forms::PictureBox^ pictureBox5;
+	private: System::Windows::Forms::DataVisualization::Charting::Chart^ chart1;
 	private: System::Windows::Forms::Button^ button1;
 
 
@@ -119,6 +120,9 @@ namespace EmotionClassification {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea1 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
+			System::Windows::Forms::DataVisualization::Charting::Legend^ legend1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
+			System::Windows::Forms::DataVisualization::Charting::Series^ series1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
 			this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
 			this->dosyaToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -136,12 +140,14 @@ namespace EmotionClassification {
 			this->pictureBox3 = (gcnew System::Windows::Forms::PictureBox());
 			this->pictureBox4 = (gcnew System::Windows::Forms::PictureBox());
 			this->pictureBox5 = (gcnew System::Windows::Forms::PictureBox());
+			this->chart1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Chart());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// menuStrip1
@@ -215,9 +221,9 @@ namespace EmotionClassification {
 			// 
 			// richTextBox1
 			// 
-			this->richTextBox1->Location = System::Drawing::Point(878, 143);
+			this->richTextBox1->Location = System::Drawing::Point(943, 385);
 			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(525, 370);
+			this->richTextBox1->Size = System::Drawing::Size(496, 176);
 			this->richTextBox1->TabIndex = 1;
 			this->richTextBox1->Text = L"";
 			// 
@@ -250,7 +256,7 @@ namespace EmotionClassification {
 			// 
 			// pictureBox2
 			// 
-			this->pictureBox2->Location = System::Drawing::Point(424, 32);
+			this->pictureBox2->Location = System::Drawing::Point(12, 385);
 			this->pictureBox2->Name = L"pictureBox2";
 			this->pictureBox2->Size = System::Drawing::Size(207, 192);
 			this->pictureBox2->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
@@ -259,7 +265,7 @@ namespace EmotionClassification {
 			// 
 			// pictureBox3
 			// 
-			this->pictureBox3->Location = System::Drawing::Point(637, 32);
+			this->pictureBox3->Location = System::Drawing::Point(240, 385);
 			this->pictureBox3->Name = L"pictureBox3";
 			this->pictureBox3->Size = System::Drawing::Size(207, 192);
 			this->pictureBox3->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
@@ -268,7 +274,7 @@ namespace EmotionClassification {
 			// 
 			// pictureBox4
 			// 
-			this->pictureBox4->Location = System::Drawing::Point(424, 230);
+			this->pictureBox4->Location = System::Drawing::Point(470, 385);
 			this->pictureBox4->Name = L"pictureBox4";
 			this->pictureBox4->Size = System::Drawing::Size(207, 192);
 			this->pictureBox4->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
@@ -277,18 +283,35 @@ namespace EmotionClassification {
 			// 
 			// pictureBox5
 			// 
-			this->pictureBox5->Location = System::Drawing::Point(637, 230);
+			this->pictureBox5->Location = System::Drawing::Point(696, 385);
 			this->pictureBox5->Name = L"pictureBox5";
 			this->pictureBox5->Size = System::Drawing::Size(207, 192);
 			this->pictureBox5->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->pictureBox5->TabIndex = 8;
 			this->pictureBox5->TabStop = false;
 			// 
+			// chart1
+			// 
+			chartArea1->Name = L"ChartArea1";
+			this->chart1->ChartAreas->Add(chartArea1);
+			legend1->Name = L"Legend1";
+			this->chart1->Legends->Add(legend1);
+			this->chart1->Location = System::Drawing::Point(453, 31);
+			this->chart1->Name = L"chart1";
+			series1->ChartArea = L"ChartArea1";
+			series1->Legend = L"Legend1";
+			series1->Name = L"Duygular";
+			this->chart1->Series->Add(series1);
+			this->chart1->Size = System::Drawing::Size(821, 348);
+			this->chart1->TabIndex = 9;
+			this->chart1->Text = L"chart1";
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(1451, 573);
+			this->ClientSize = System::Drawing::Size(1451, 592);
+			this->Controls->Add(this->chart1);
 			this->Controls->Add(this->pictureBox5);
 			this->Controls->Add(this->pictureBox4);
 			this->Controls->Add(this->pictureBox3);
@@ -309,6 +332,7 @@ namespace EmotionClassification {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -544,7 +568,7 @@ namespace EmotionClassification {
 						surface->SetPixel(column, row, c);
 					}
 				}
-				runToolStripMenuItem_Click(sender,e);
+				runToolStripMenuItem_Click(sender, e);
 			}
 		}
 		else {
@@ -563,9 +587,9 @@ namespace EmotionClassification {
 
 		//----- input layer cnn
 		string filePath = input + "conv2d.csv";
-		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE+ MASK_COUNT_FIRST_LAYER];
-		readWeightFromFile(convFirstLayerWeights,filePath); 
-		
+		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
+		readWeightFromFile(convFirstLayerWeights, filePath);
+
 
 		//----- 2. layer cnn
 		filePath = input + "conv2d_1.csv";
@@ -574,59 +598,32 @@ namespace EmotionClassification {
 
 		//----- 1. batch norm
 		filePath = input + "batch_normalization.csv";
-		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER + MASK_COUNT_FIRST_LAYER];
+		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
 		readWeightFromFile(batchNormWeight, filePath);
 
 		//----- 2. batch norm
 		filePath = input + "batch_normalization_1.csv";
-		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 + MASK_COUNT_HIDDEN_LAYER_1];
+		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
 		readWeightFromFile(batchNormWeight_1, filePath);
 
 		//----- 3. batch norm
 		filePath = input + "batch_normalization_2.csv";
-		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER + DENSE_HIDDEN_LAYER];
+		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER * 4];
 		readWeightFromFile(batchNormWeight_2, filePath);
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
 		int sizeW = IMAGE_WIDTH;
 		int sizeH = IMAGE_HEIGHT;
-		
+
 
 		float* fResult = new float[size];
 
 		//1. cnn layer
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
-
-
-
-		batchNormalizationConv(fResult, batchNormWeight,sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-
+		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		richTextBox1->Text = "";
-		for (int i = 0; i < MASK_COUNT_FIRST_LAYER; i++) {
-			richTextBox1->Text += "[ ";
-			for (int row = 0; row < sizeH; row++) {
-				for (int col = 0; col < sizeW; col++) {
-					richTextBox1->Text += fResult[i * sizeW * sizeH + row * sizeW + col] + " ";
-				}
-				richTextBox1->Text += "\n";
-			}
-			richTextBox1->Text += " ] \n";
-		}
-
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
-
-		//for (int i = 0; i < MASK_COUNT_HIDDEN_LAYER_1; i++) {
-		//	richTextBox1->Text += "[ ";
-		//	for (int row = 0; row < sizeH; row++) {
-		//		for (int col = 0; col < sizeW; col++) {
-		//			richTextBox1->Text += fResult[i * sizeW * sizeH + row * sizeW + col] + " ";
-		//		}
-		//		richTextBox1->Text += "\n";
-		//	}
-		//	richTextBox1->Text += " ] \n";
-		//}
-
 		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
 
 		//2.cnn layer
@@ -634,12 +631,43 @@ namespace EmotionClassification {
 		fHiddenResult = convHidden(fResult, convHiddenLayerWeights_1, sizeW, sizeH, MASK_SIZE, MASK_COUNT_HIDDEN_LAYER_1, MASK_COUNT_FIRST_LAYER);
 		size = sizeW * sizeH * MASK_COUNT_HIDDEN_LAYER_1;
 
-		batchNormalizationConv(fHiddenResult, batchNormWeight_1,sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
+
+
+
+		//int max = 0;
+		//int min = 0;
+		//float ratio = 0.0;
+		BYTE* result = new BYTE[size];
+
+		int sizeTW = sizeW;
+		int sizeHW = sizeH;
+		//for (int m = 0; m < 6; m++) {
+		//	for (int i = 0; i < sizeW * sizeH; i++) {
+		//		if ((int)fHiddenResult[(m * sizeW * sizeH) + i] > max) {
+		//			max = fHiddenResult[(m * sizeW * sizeH) + i];
+		//		}
+		//		if ((int)fHiddenResult[(m * sizeW * sizeH) + i] < min) {
+		//			min = fHiddenResult[(m * sizeW * sizeH) + i];
+		//		}
+		//	}
+		//	for (int i = 0; i < sizeW * sizeH; i++) {
+		//		fHiddenResult[(m * sizeW * sizeH) + i] = fHiddenResult[(m * sizeW * sizeH) + i] - (min);
+		//	}
+		//	ratio = (float)(max - min) / 255;
+
+		//	for (int i = 0; i < sizeW * sizeH; i++) {
+		//		result[(m * sizeW * sizeH) + i] = fHiddenResult[(m * sizeW * sizeH) + i] / ratio;
+		//	}
+		//}
+
+
+
+		batchNormalizationConv(fHiddenResult, batchNormWeight_1, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1, 2, 2);
 
-
 		//----- FullyConnected Layer 1
+		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		int sizeTemp = MASK_COUNT_HIDDEN_LAYER_1 * sizeW * sizeH;
 		float* denseResult = new float[DENSE_HIDDEN_LAYER];
 		filePath = input + "dense.csv";
@@ -656,69 +684,90 @@ namespace EmotionClassification {
 		readWeightFromFile(denseHiddenLayerWeights_1, filePath);
 		denseResult = dense(denseResult, denseHiddenLayerWeights_1, DENSE_HIDDEN_LAYER, 7);
 
-		//richTextBox1->Text = "";
-		//for (int i = 0; i < 7; i++) {
-		//	richTextBox1->Text += denseResult[i] + "\n";
+		softmax(denseResult, 7);
+
+		string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
+
+		for (int i = 0; i < 7; i++) {
+			String^ str = gcnew String(emot[i].c_str());
+			chart1->Series["Duygular"]->Points->AddXY(str, denseResult[i]);
+		}
+		
+
+		
+
+
+		/*for (int i = 0; i < MASK_COUNT_FIRST_LAYER; i++) {
+			richTextBox1->Text += "[ ";
+			for (int row = 0; row < sizeH; row++) {
+				for (int col = 0; col < sizeW; col++) {
+					richTextBox1->Text += fHiddenResult[i * sizeW * sizeH + row * sizeW + col] + " ";
+				}
+				richTextBox1->Text += "\n";
+			}
+			richTextBox1->Text += " ] \n";
+		}*/
+
+
+
+
+
+
+
+
+
+
+		//BYTE* result = new BYTE[size];
+		//int tempo = 0;
+
+		//for (int i = 0; i < size; i++) {
+		//	fHiddenResult[i] = fHiddenResult[i] * 128;
+		//	tempo = (int)fHiddenResult[i];
+		//	if (tempo < 0)
+		//		result[i] = 0;
+
+		//	else if (tempo > 255)
+		//		result[i] = 255;
+
+		//	else
+		//		result[i] = tempo;
 		//}
 
 
+		//Bitmap^ surface = gcnew Bitmap(sizeTW, sizeHW);
+		//pictureBox2->Image = surface;
+
+		//Bitmap^ surface2 = gcnew Bitmap(sizeTW, sizeHW);
+		//pictureBox3->Image = surface2;
+
+		//Bitmap^ surface3 = gcnew Bitmap(sizeTW, sizeHW);
+		//pictureBox4->Image = surface3;
+
+		//Bitmap^ surface4 = gcnew Bitmap(sizeTW, sizeHW);
+		//pictureBox5->Image = surface4;
 
 
+		//Color c;
 
 
+		//for (int row = 0; row < sizeHW; row++)
+		//{
 
+		//	for (int column = 0; column < sizeTW; column++)
+		//	{
+		//		c = Color::FromArgb(result[row * sizeTW + column], result[row * sizeTW + column], result[row * sizeTW + column]);
+		//		surface->SetPixel(column, row, c);
 
-		BYTE* result = new BYTE[size];
-		int tempo = 0;
+		//		c = Color::FromArgb(result[(sizeHW * sizeTW) + row * sizeTW + column], result[(sizeHW * sizeTW) + row * sizeTW + column], result[(sizeHW * sizeTW) + row * sizeTW + column]);
+		//		surface2->SetPixel(column, row, c);
 
-		for (int i = 0; i < size; i++) {
-			fHiddenResult[i] = fHiddenResult[i] * 128 +30;
-			tempo = (int)fHiddenResult[i];
-			if (tempo < 0)
-				result[i] = 0;
+		//		c = Color::FromArgb(result[(sizeHW * sizeTW * 2) + row * sizeTW + column], result[(sizeHW * sizeTW * 2) + row * sizeTW + column], result[(sizeHW * sizeTW * 2) + row * sizeTW + column]);
+		//		surface3->SetPixel(column, row, c);
 
-			else if (tempo > 255)
-				result[i] = 255;
-
-			else
-				result[i] = tempo;
-		}
-
-
-		Bitmap^ surface = gcnew Bitmap(sizeW, sizeH);
-		pictureBox2->Image = surface;
-
-		Bitmap^ surface2 = gcnew Bitmap(sizeW, sizeH);
-		pictureBox3->Image = surface2;
-
-		Bitmap^ surface3 = gcnew Bitmap(sizeW, sizeH);
-		pictureBox4->Image = surface3;
-
-		Bitmap^ surface4 = gcnew Bitmap(sizeW, sizeH);
-		pictureBox5->Image = surface4;
-
-
-		Color c;
-
-
-		for (int row = 0; row < sizeH; row++)
-		{
-
-			for (int column = 0; column < sizeW; column++)
-			{
-				c = Color::FromArgb(result[row * sizeW + column], result[row * sizeW + column], result[row * sizeW + column]);
-				surface->SetPixel(column, row, c);
-
-				c = Color::FromArgb(result[(sizeH * sizeW) + row * sizeW + column], result[(sizeH * sizeW) + row * sizeW + column], result[(sizeH * sizeW) + row * sizeW + column]);
-				surface2->SetPixel(column, row, c);
-
-				c = Color::FromArgb(result[(sizeH * sizeW * 2) + row * sizeW + column], result[(sizeH * sizeW * 2) + row * sizeW + column], result[(sizeH * sizeW * 2) + row * sizeW + column]);
-				surface3->SetPixel(column, row, c);
-
-				c = Color::FromArgb(result[(sizeH * sizeW * 3) + row * sizeW + column], result[(sizeH * sizeW * 3) + row * sizeW + column], result[(sizeH * sizeW * 3) + row * sizeW + column]);
-				surface4->SetPixel(column, row, c);
-			}
-		}
+		//		c = Color::FromArgb(result[(sizeHW * sizeTW * 3) + row * sizeTW + column], result[(sizeHW * sizeTW * 3) + row * sizeTW + column], result[(sizeHW * sizeTW * 3) + row * sizeTW + column]);
+		//		surface4->SetPixel(column, row, c);
+		//	}
+		//}
 
 
 		delete[] result;

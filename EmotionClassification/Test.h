@@ -7,3 +7,5 @@ float* batchNormalizationDense(float* input, float* batchWeights, int inputSize)
 float* reLU(float* feature, int width, int height , int featureCount);
 float* maxPooling(float* feature, int &width, int &height, int  featureCount, int pool, int stride);
 float* dense(float* inputLayer, float* weights, int inputLayerSize, int outputLayerSize);
+float* flatten(float* features, int width, int height, int featureCount);
+float* softmax(float* input, int size);

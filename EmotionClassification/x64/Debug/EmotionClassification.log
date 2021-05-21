@@ -1,5 +1,4 @@
-﻿  Test.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cpp(167,41): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cpp(228,6): warning C4101: 'a': unreferenced local variable
+﻿  MyForm.cpp
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(543,4): warning C4129: 'd': unrecognized character escape sequence
   Image.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
   EmotionClassification.vcxproj -> C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe
