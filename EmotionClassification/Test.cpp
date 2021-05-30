@@ -17,6 +17,10 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 
 
 
+
+
+
+
 	for (int i = 0; i < width * height; i++) {
 		image[i] = inputImage[(imageCount * width * height) + i]; //
 	}

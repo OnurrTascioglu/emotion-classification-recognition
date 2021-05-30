@@ -6,16 +6,15 @@
 
 #include "CpuGpuMem.h"
 
-void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword);
+void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType);
+
 void cpuGpuFree(CpuGpuMem* p_cg, char keyword);
 
 
-void cpu_gpu_alloc(CpuGpuMem* p_cg);
-void cpu_gpu_free(CpuGpuMem* p_cg);
+void cpuGpuMemCopy(enum cudaMemcpyKind copyKind, struct CpuGpuMem* p_cg, void* destPtr, void* srcPtr, int allocSize);
 
-void cpu_gpu_set_numbers(CpuGpuMem* p_cg);
+void cpuGpuPin(void* ptr, int allocSize);
 
-void cpu_gpu_h_to_d(CpuGpuMem* p_cg);
-void cpu_gpu_d_to_h(CpuGpuMem* p_cg);
-void cpu_gpu_pin(CpuGpuMem* p_cg);
-void cpu_gpu_unpin(CpuGpuMem* p_cg);
+void cpuGpuUnpin(void* ptr, int allocSize);
+
+

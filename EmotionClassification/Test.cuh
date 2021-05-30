@@ -1,8 +1,5 @@
 #pragma once
 #include "cpuGpuMem.h"
 
-#ifdef __cplusplus
-extern "C"
-#endif
-
-void cpuGpuExecute(struct CpuGpuMem* cg);
+void conv1ExecGPU(CpuGpuMem* cg, const int maskCount);
+void batchAndReLuConv1ExecGPU(CpuGpuMem* cg, const int featureCount);

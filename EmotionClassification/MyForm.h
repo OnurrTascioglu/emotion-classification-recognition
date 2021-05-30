@@ -643,6 +643,7 @@ namespace EmotionClassification {
 		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER * 4];
 		readWeightFromFile(batchNormWeight_2, filePath);
 
+
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
 		int sizeW = IMAGE_WIDTH;
 		int sizeH = IMAGE_HEIGHT;
@@ -653,10 +654,15 @@ namespace EmotionClassification {
 		//1. cnn layer
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
 		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		richTextBox1->Text = "";
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
+		richTextBox1->Text = " ";
+		for (int i = 0; i < 100; i++) {
+			richTextBox1->Text += fResult[i] + "\n";
+		}
 		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
 		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
+
+
 
 		//2.cnn layer
 		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_HIDDEN_LAYER_1];
@@ -849,7 +855,7 @@ namespace EmotionClassification {
 		}
 	}
 
-	void setValuesForGpu(CpuGpuMem* cg) {
+	void setValuesForGpuConv1(CpuGpuMem* cg) {
 		cg->imageHeightSize = IMAGE_HEIGHT;
 		cg->imageWidthSize = IMAGE_WIDTH;
 		cg->featureWidthSize = IMAGE_WIDTH - MASK_SIZE + 1; // no Padding
@@ -858,12 +864,13 @@ namespace EmotionClassification {
 		cg->maskCount = MASK_COUNT_FIRST_LAYER;
 		cg->maskDim = 1;
 
-		cpuGpuAlloc(cg, 'i');
-		cpuGpuAlloc(cg, 'f');
-		cpuGpuAlloc(cg, 'm');
+		cpuGpuAlloc(cg, 'i', sizeof(int));
+		cpuGpuAlloc(cg, 'f', sizeof(float));
+		cpuGpuAlloc(cg, 'm', sizeof(float));
 
+		int* cpu_int32 = (int*)cg->cpuImagePtr;
 		for (int i = 0; i < IMAGE_HEIGHT * IMAGE_WIDTH; i++) {
-			cg->cpuImagePtr[i] = ferImages[(ferTextBoxInput * IMAGE_WIDTH * IMAGE_HEIGHT) + i]; //
+			cpu_int32[i] = ferImages[(ferTextBoxInput * IMAGE_WIDTH * IMAGE_HEIGHT) + i]; //
 		}
 
 		for (int i = 0; i < cg->featureWidthSize * cg->featureHeightSize * cg->maskCount; i++) {
@@ -890,6 +897,22 @@ namespace EmotionClassification {
 		std::string input(inputStr);
 		//------ File Path
 
+		//----- read weights from file
+		string filePath = input + "conv2d.csv";
+		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
+		readWeightFromFile(convFirstLayerWeights, filePath);
+
+		//----- 2. layer cnn
+		filePath = input + "conv2d_1.csv";
+		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
+		readWeightFromFile(convHiddenLayerWeights_1, filePath);
+
+		//----- 1. batch norm
+		filePath = input + "batch_normalization.csv";
+		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
+		readWeightFromFile(batchNormWeight, filePath);
+
+
 		const int instance_count = 1;
 
 		CpuGpuMem cgs[1];
@@ -897,36 +920,54 @@ namespace EmotionClassification {
 		for (int i = 0; i < instance_count; i++)
 		{
 			CpuGpuMem* cg = &cgs[i];
-
-			//----- read weights from file
-			string filePath = input + "conv2d.csv";
-			convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-			readWeightFromFile(convFirstLayerWeights, filePath);
 			
-			setValuesForGpu(cg);
+			setValuesForGpuConv1(cg); // func
 
 			cudaError_t result = cudaStreamCreate(&cg->stream);
 			assert(result == cudaSuccess);
 
-			cpu_gpu_pin(cg);
+
+			cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
+		}
+
+		for (int i = 0; i < instance_count; i++)
+		{
+			CpuGpuMem* cg = &cgs[i];
+			
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize ); // host to device
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize );
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+
+			conv1ExecGPU(cg, MASK_COUNT_FIRST_LAYER); //conv1
+			cudaDeviceSynchronize();
+
+			cpuGpuAlloc(cg, 'b', sizeof(float));     //batch for conv1
+			for (int i = 0; i < cg->maskCount * 4; i++) 
+				cg->cpuBatchPtr[i] = batchNormWeight[i];
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+			batchAndReLuConv1ExecGPU(cg, MASK_COUNT_FIRST_LAYER);
+			
+
+			cudaDeviceSynchronize();
+			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuImagePtr, cg->gpuImagePtr, cg->imageAllocSize); // device to host
+			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuFeaturePtr, cg->featureAllocSize);
+			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuMaskPtr, cg->gpuMaskPtr, cg->maskAllocSize);
+
+			richTextBox1->Text = " ";
+ 			for (int i = 0; i < 100; i++) {
+				richTextBox1->Text += cg->cpuFeaturePtr[i] + "\n";
+			}
 		}
 
 		for (int i = 0; i < instance_count; i++)
 		{
 			CpuGpuMem* cg = &cgs[i];
 
-			cpu_gpu_h_to_d(cg);
-			cpuGpuExecute(cg);
-			cpu_gpu_d_to_h(cg);
-		}
-
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
-
-			cpu_gpu_unpin(cg);
-			cpu_gpu_free(cg);
-
+			cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
+			cpuGpuFree(cg, 'i');
+			cpuGpuFree(cg, 'f');
+			cpuGpuFree(cg, 'm');
+			cpuGpuFree(cg, 'b');
 			cudaError_t result = cudaStreamDestroy(cg->stream);
 			assert(result == cudaSuccess);
 		}
