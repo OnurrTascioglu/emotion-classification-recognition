@@ -7,17 +7,18 @@
 float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int maskSize, int maskCount, int imageCount) {
 
 
-	int rMatrixWidth = width - maskSize + 1;
-	int rMatrixHeight = height - maskSize + 1;
+	int rMatrixWidth = width - maskSize + 1; //extern
+	int rMatrixHeight = height - maskSize + 1; //extern
 
 
-	float* masks = new float[maskSize * maskSize * maskCount];
-	float* resultImages = new float[maskCount * rMatrixWidth * rMatrixHeight];
-	BYTE* image = new BYTE[width * height];
+	float* masks = new float[maskSize * maskSize * maskCount + maskCount]; //cpugpuAlloc
+	float* resultImages = new float[maskCount * rMatrixWidth * rMatrixHeight]; //cpugpuAlloc
+	BYTE* image = new BYTE[width * height]; //cpugpuAlloc
+
 
 
 	for (int i = 0; i < width * height; i++) {
-		image[i] = inputImage[(imageCount * width * height) + i];
+		image[i] = inputImage[(imageCount * width * height) + i]; //
 	}
 
 	for (int i = 0; i < maskCount * rMatrixWidth * rMatrixHeight; i++) {
@@ -29,7 +30,9 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 			masks[j * maskSize * maskSize + i] = weights[i * maskCount + j];
 		}
 	}
-
+	for (int i = 0; i < maskCount; i++) {
+		masks[maskCount * maskSize * maskSize + i] = weights[maskCount * maskSize * maskSize + i];
+	}
 
 	for (int m = 0; m < maskCount; m++) {
 		for (int i = 0; i < rMatrixHeight; i++) {
@@ -40,7 +43,7 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 					resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] +=
 						(float)image[(width * i + j) + mRow * width + mCol] * masks[m * (maskSize * maskSize) + k];
 				}
-				resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += (float)BIAS * weights[maskCount * (maskSize * maskSize) + m];
+				resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += (float)BIAS * masks[maskCount * (maskSize * maskSize) + m];
 			}
 		}
 	}
@@ -56,7 +59,7 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 
 float* convHidden(float* feature, float* weights, int& fWidth, int& fHeight, int maskSize, int maskCount, int maskDim) {
 
-	float* masks = new float[maskSize * maskSize * maskCount * maskDim];
+	float* masks = new float[maskSize * maskSize * maskCount * maskDim + maskCount];
 	int rMatrixWidth = fWidth - maskSize + 1;
 	int rMatrixHeight = fHeight - maskSize + 1;
 	float* resultImages = new float[maskCount * rMatrixWidth * rMatrixHeight];
@@ -74,6 +77,10 @@ float* convHidden(float* feature, float* weights, int& fWidth, int& fHeight, int
 			}
 		}
 	}
+	for (int i = 0; i < maskCount; i++)
+	{
+		masks[maskCount * maskDim * maskSize * maskSize + i] = weights[maskCount * maskDim * maskSize * maskSize + i];
+	}
 
 	for (int c = 0; c < maskCount; c++) {
 		for (int i = 0; i < rMatrixHeight; i++) {
@@ -87,7 +94,7 @@ float* convHidden(float* feature, float* weights, int& fWidth, int& fHeight, int
 					}
 
 				}
-				resultImages[(c * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += BIAS * weights[maskCount * maskDim * maskSize * maskSize + c];
+				resultImages[(c * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += BIAS * masks[maskCount * maskDim * maskSize * maskSize + c];
 			}
 		}
 	}
