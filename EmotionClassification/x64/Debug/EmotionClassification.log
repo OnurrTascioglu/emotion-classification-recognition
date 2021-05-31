@@ -1,1 +1,15 @@
-﻿  EmotionClassification.vcxproj -> C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe
+﻿  MyForm.cpp
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(573,4): warning C4129: 'd': unrecognized character escape sequence
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(822,4): warning C4129: 'd': unrecognized character escape sequence
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(934,35): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(941,82): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(942,86): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(943,80): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(954,82): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(955,86): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(956,80): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(968,37): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+  CpuGpu.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
+MyForm.obj : warning LNK4248: unresolved typeref token (01000037) for 'CUstream_st'; image may not run
+CpuGpu.obj : warning LNK4248: unresolved typeref token (01000010) for 'CUstream_st'; image may not run
+  EmotionClassification.vcxproj -> C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe

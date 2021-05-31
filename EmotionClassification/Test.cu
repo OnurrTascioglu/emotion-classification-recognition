@@ -51,19 +51,32 @@ __global__ void batchConv1GPU(float* feature, float* batchWeights, int width, in
 	}
 }
 
-void batchAndReLuConv1ExecGPU(CpuGpuMem* cg, const int featureCount)
+__global__ void maxPoolingGPU(float* feature, int& width, int& height, int  featureCount, int pool, int stride)
 {
-	int ms = cg->maskWHSize;
-	int fws = cg->featureWidthSize;
-	int fhs = cg->featureHeightSize;
-
-	int blockDim = 1024;
-	int threadCount = featureCount * fws * fhs;
+	int id = blockDim.x * blockIdx.x + threadIdx.x;
 
 
-	int gridDim = (threadCount + blockDim - 1) / blockDim;
+	if () {
+		int temp2 = 0;
+		int col = id % (width / stride);
+		temp2 = id / (width / stride);
+		int row = temp2 % (height / stride);
+		int m = temp2 / (height / stride);
 
-	batchConv1GPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, featureCount);
+		float max = 0.0;
+		float temp = 0.0;
+
+		for (int k = 0; k < pool; k++) {
+			for (int n = 0; n < pool; n++) {
+				temp = feature[(m * width * height) + row * width * stride + col * stride + k * width + n];
+				if (isgreater(temp, max)) {
+					max = temp;
+				}
+			}
+		}
+		feature[(m * (width / stride) * (height / stride)) + (row * (width / stride)) + col] = max;
+
+	}
 
 }
 
@@ -84,6 +97,15 @@ void conv1ExecGPU(CpuGpuMem* cg, const int maskCount)
 	
 	conv1GPU << <gridDim, blockDim, 0 ,cg->stream>> > (cg->gpuFeaturePtr, cg->gpuMaskPtr, (int*)cg->gpuImagePtr, cg->imageWidthSize, cg->imageHeightSize,
 		cg->maskWHSize,cg->featureWidthSize, cg->featureHeightSize, maskCount);
+	batchConv1GPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, maskCount);
+
+	threadCount = maskCount * (fws/2) * (fhs/2);
+	gridDim = (threadCount + blockDim - 1) / blockDim;
+
+	maxPoolingGPU << <gridDim, blockDim, 0, cg->stream >> > (float* feature, int& width, int& height, int  featureCount, int pool, int stride)
+
+	width = width / stride;
+	height = height / stride;
 
 }
 

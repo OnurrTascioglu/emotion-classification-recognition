@@ -31,8 +31,19 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
 		else {
 			assert(true);
 		}
+	case 'd':
+		p_cg->dtoFeatureAllocSize = p_cg->dtoFeatureWidthSize * p_cg->dtoFeatureHeightSize * p_cg->maskCount * sizeOfType;
+
+		if (p_cg->dtoFeatureAllocSize < 3.5 * 1024 * 1024 * 1024) {
+			p_cg->cpuDtoFeaturePtr = (float*)malloc(p_cg->dtoFeatureAllocSize);
+			result = cudaMalloc(&p_cg->gpuDtoFeaturePtr, p_cg->dtoFeatureAllocSize);
+			assert(result == cudaSuccess);
+		}
+		else {
+			assert(true);
+		}
 	case 'm':
-		p_cg->maskAllocSize = (p_cg->maskWHSize * p_cg->maskWHSize * p_cg->maskCount * p_cg->maskDim + p_cg->maskCount) * sizeOfType;
+		p_cg->maskAllocSize = (p_cg->maskWHSize * p_cg->maskWHSize * p_cg->maskCount * p_cg->maskDim + p_cg->maskCount) * sizeOfType*250;
 
 		if (p_cg->maskAllocSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuMaskPtr = (float*)malloc(p_cg->maskAllocSize);
@@ -75,6 +86,12 @@ void cpuGpuFree(CpuGpuMem* p_cg, char keyword)
 		assert(result == cudaSuccess);
 
 		free(p_cg->cpuFeaturePtr);
+		break;
+	case 'd':
+		result = cudaFree(p_cg->gpuDtoFeaturePtr);
+		assert(result == cudaSuccess);
+
+		free(p_cg->cpuDtoFeaturePtr);
 		break;
 	case 'm':
 		result = cudaFree(p_cg->gpuMaskPtr);

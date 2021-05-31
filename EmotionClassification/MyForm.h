@@ -867,6 +867,10 @@ namespace EmotionClassification {
 		cpuGpuAlloc(cg, 'i', sizeof(int));
 		cpuGpuAlloc(cg, 'f', sizeof(float));
 		cpuGpuAlloc(cg, 'm', sizeof(float));
+		cpuGpuAlloc(cg, 'b', sizeof(float));//batch for conv1
+
+		for (int i = 0; i < cg->maskCount * 4; i++)
+			cg->cpuBatchPtr[i] = batchNormWeight[i];
 
 		int* cpu_int32 = (int*)cg->cpuImagePtr;
 		for (int i = 0; i < IMAGE_HEIGHT * IMAGE_WIDTH; i++) {
@@ -937,16 +941,12 @@ namespace EmotionClassification {
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize ); // host to device
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize );
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+
 
 			conv1ExecGPU(cg, MASK_COUNT_FIRST_LAYER); //conv1
-			cudaDeviceSynchronize();
 
-			cpuGpuAlloc(cg, 'b', sizeof(float));     //batch for conv1
-			for (int i = 0; i < cg->maskCount * 4; i++) 
-				cg->cpuBatchPtr[i] = batchNormWeight[i];
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
-			batchAndReLuConv1ExecGPU(cg, MASK_COUNT_FIRST_LAYER);
-			
+			//cudamemset();
 
 			cudaDeviceSynchronize();
 			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuImagePtr, cg->gpuImagePtr, cg->imageAllocSize); // device to host
