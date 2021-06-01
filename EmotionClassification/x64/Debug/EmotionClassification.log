@@ -1,26 +1,8 @@
 ﻿  Compiling CUDA source file Test.cu...
   
   C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3\include"  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static -Xptxas -dlcm=ca -g  -D_DEBUG -D"_UNICODE" -D"UNICODE" -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi  /MDd " -o x64\Debug\Test.cu.obj "C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cu" 
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cu(127): warning : variable "dfhs" was declared but never referenced
-  
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cu(128): warning : variable "dfws" was declared but never referenced
-  
   Test.cu
-  MyForm.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(573,4): warning C4129: 'd': unrecognized character escape sequence
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(823,4): warning C4129: 'd': unrecognized character escape sequence
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(987,35): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(994,82): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(995,86): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(996,80): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1009,80): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1010,92): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1022,82): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1023,86): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1024,80): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1025,92): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1034,37): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
   CpuGpu.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
-MyForm.obj : warning LNK4248: unresolved typeref token (01000037) for 'CUstream_st'; image may not run
+MyForm.obj : warning LNK4248: unresolved typeref token (01000038) for 'CUstream_st'; image may not run
 CpuGpu.obj : warning LNK4248: unresolved typeref token (01000010) for 'CUstream_st'; image may not run
   EmotionClassification.vcxproj -> C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\x64\Debug\EmotionClassification.exe

@@ -4,12 +4,12 @@
 #define PIN_LIMIT 4 * 1024 * 1024
 
 
-void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
+void cpuGpuAlloc(CpuGpuMem* p_cg, enum cpuGpuMemVar keyword, int sizeOfType)
 {
 	cudaError_t result;
 	switch (keyword)
 	{
-	case 'i':
+	case imageEnum:
 		p_cg->imageAllocSize = p_cg->imageWidthSize * p_cg->imageHeightSize * sizeOfType;
 
 		if (p_cg->imageAllocSize < 3.5 * 1024 * 1024 * 1024) {
@@ -21,7 +21,7 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
 			assert(true);
 		}
 		break;
-	case 'f':
+	case featureEnum:
 		p_cg->featureAllocSize = p_cg->featureWidthSize * p_cg->featureHeightSize * p_cg->maskCount * sizeOfType;
 
 		if (p_cg->featureAllocSize < 3.5 * 1024 * 1024 * 1024) {
@@ -33,19 +33,7 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
 			assert(true);
 		}
 		break;
-	case 'd':
-		p_cg->dtoFeatureAllocSize = p_cg->dtoFeatureWidthSize * p_cg->dtoFeatureHeightSize * p_cg->maskCount * sizeOfType;
-
-		if (p_cg->dtoFeatureAllocSize < 3.5 * 1024 * 1024 * 1024) {
-			p_cg->cpuDtoFeaturePtr = (float*)malloc(p_cg->dtoFeatureAllocSize);
-			result = cudaMalloc((float**)&p_cg->gpuDtoFeaturePtr, p_cg->dtoFeatureAllocSize);
-			assert(result == cudaSuccess);
-		}
-		else {
-			assert(true);
-		}
-		break;
-	case 'm':
+	case maskEnum:
 		p_cg->maskAllocSize = (p_cg->maskWHSize * p_cg->maskWHSize * p_cg->maskCount * p_cg->maskDim + p_cg->maskCount) * sizeOfType;
 
 		if (p_cg->maskAllocSize < 3.5 * 1024 * 1024 * 1024) {
@@ -57,12 +45,36 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
 			assert(true);
 		}
 		break;
-	case 'b':
-		p_cg->batchWeightSize = p_cg->maskCount * 4  * sizeOfType;
+	case batchEnum:
+		p_cg->batchWeightSize = p_cg->batchWeightSize * 4 * sizeOfType;
 
 		if (p_cg->batchWeightSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuBatchPtr = (float*)malloc(p_cg->batchWeightSize);
 			result = cudaMalloc((float**)&p_cg->gpuBatchPtr, p_cg->batchWeightSize);
+			assert(result == cudaSuccess);
+		}
+		else {
+			assert(true);
+		}
+		break;
+	case denseEnum:
+		p_cg->denseOutputAllocSize = p_cg->denseOutputSize * sizeOfType;
+
+		if (p_cg->denseOutputSize < 3.5 * 1024 * 1024 * 1024) {
+			p_cg->cpuDensePtr = (float*)malloc(p_cg->denseOutputAllocSize);
+			result = cudaMalloc((float**)&p_cg->gpuDensePtr, p_cg->denseOutputAllocSize);
+			assert(result == cudaSuccess);
+		}
+		else {
+			assert(true);
+		}
+		break;
+	case denseWeightEnum:
+		p_cg->denseWeightAllocSize = (p_cg->denseOutputSize * p_cg->denseInputSize + p_cg->denseOutputSize )* sizeOfType;
+
+		if (p_cg->denseWeightAllocSize < 3.5 * 1024 * 1024 * 1024) {
+			p_cg->cpuDenseWeightPtr = (float*)malloc(p_cg->denseWeightAllocSize);
+			result = cudaMalloc((float**)&p_cg->gpuDenseWeightPtr, p_cg->denseWeightAllocSize);
 			assert(result == cudaSuccess);
 		}
 		else {
@@ -75,40 +87,46 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
 	}
 
 }
-void cpuGpuFree(CpuGpuMem* p_cg, char keyword)
+void cpuGpuFree(CpuGpuMem* p_cg, enum cpuGpuMemVar keyword)
 {
 	cudaError_t result;
 	switch (keyword)
 	{
-	case 'i':
+	case imageEnum:
 		result = cudaFree(p_cg->gpuImagePtr);
 		assert(result == cudaSuccess);
 
-		free(p_cg->cpuImagePtr); assert(true);
+		free(p_cg->cpuImagePtr); 
 		break;
-	case 'f':
+	case featureEnum:
 		result = cudaFree(p_cg->gpuFeaturePtr);
 		assert(result == cudaSuccess);
 
 		free(p_cg->cpuFeaturePtr);
 		break;
-	case 'd':
-		result = cudaFree(p_cg->gpuDtoFeaturePtr);
-		assert(result == cudaSuccess);
-
-		free(p_cg->cpuDtoFeaturePtr);
-		break;
-	case 'm':
+	case maskEnum:
 		result = cudaFree(p_cg->gpuMaskPtr);
 		assert(result == cudaSuccess);
 
 		free(p_cg->cpuMaskPtr);
 		break;
-	case 'b':
+	case batchEnum:
 		result = cudaFree(p_cg->gpuBatchPtr);
 		assert(result == cudaSuccess);
 
 		free(p_cg->cpuBatchPtr);
+		break;
+	case denseEnum:
+		result = cudaFree(p_cg->gpuDensePtr);
+		assert(result == cudaSuccess);
+
+		free(p_cg->cpuDensePtr);
+		break;
+	case denseWeightEnum:
+		result = cudaFree(p_cg->gpuDenseWeightPtr);
+		assert(result == cudaSuccess);
+
+		free(p_cg->cpuDenseWeightPtr);
 		break;
 	default:
 		assert(true);
@@ -139,7 +157,7 @@ void cpuGpuUnpin(void* ptr, int allocSize)
 
 	cudaError_t result;
 
-	int allocation_size = allocSize ;
+	int allocation_size = allocSize;
 
 	bool pin = allocation_size > pinLimit;
 
@@ -150,9 +168,9 @@ void cpuGpuUnpin(void* ptr, int allocSize)
 	}
 }
 
-void cpuGpuMemCopy(enum cudaMemcpyKind copyKind, struct CpuGpuMem* p_cg,void* destPtr, void* srcPtr, int allocSize)
+void cpuGpuMemCopy(enum cudaMemcpyKind copyKind, struct CpuGpuMem* p_cg, void* destPtr, void* srcPtr, int allocSize)
 {
-	long long int allocation_size = allocSize ;
+	long long int allocation_size = allocSize;
 
 	cudaError_t result;
 

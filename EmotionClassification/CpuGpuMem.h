@@ -10,16 +10,10 @@ struct CpuGpuMem {
 
 	float* cpuFeaturePtr; //for feature
 	float* gpuFeaturePtr;
-	float* gpuFeaturePtrTemp;
+
 	int featureWidthSize;
 	int featureHeightSize;
 	long long int featureAllocSize;
-
-	float* cpuDtoFeaturePtr; //for feature
-	float* gpuDtoFeaturePtr;
-	int dtoFeatureWidthSize;
-	int dtoFeatureHeightSize;
-	long long int dtoFeatureAllocSize;
 
 	float* cpuMaskPtr; //for mask
 	float* gpuMaskPtr;
@@ -30,11 +24,36 @@ struct CpuGpuMem {
 
 	float* gpuBatchPtr;
 	float* cpuBatchPtr;
-	int batchWeightSize;
+	long long int batchWeightSize;
+
+	float* gpuTempLayer;
+	float* gpuTempLayer2;
+
+	float* cpuDensePtr;
+	float* gpuDensePtr;
+	float* cpuDenseWeightPtr;
+	float* gpuDenseWeightPtr;
+	int denseInputSize;
+	int denseOutputSize;
+	long long int denseInputAllocSize;
+	long long int denseOutputAllocSize;
+	long long int denseWeightAllocSize;
+
 
 	int stride;
 	int pool;
 
 
 	cudaStream_t stream;
+};
+
+enum cpuGpuMemVar
+{
+	imageEnum = 0,
+	featureEnum = 1,
+	maskEnum = 2,
+	dtoFeatureEnum = 3,
+	batchEnum = 4,
+	denseEnum = 5,
+	denseWeightEnum = 6,
 };

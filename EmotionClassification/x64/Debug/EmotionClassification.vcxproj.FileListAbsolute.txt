@@ -1,3 +1,2 @@
 C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\x64\Debug\EmotionClassification.MyForm.resources
 C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\x64\Debug\EmotionClassification.vcxproj.GenerateResource.cache
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\x64\Debug\EmotionClassification.vcxprojAssemblyReference.cache

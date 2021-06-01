@@ -6,9 +6,9 @@
 
 #include "CpuGpuMem.h"
 
-void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType);
+void cpuGpuAlloc(CpuGpuMem* p_cg, enum cpuGpuMemVar keyword, int sizeOfType);
 
-void cpuGpuFree(CpuGpuMem* p_cg, char keyword);
+void cpuGpuFree(CpuGpuMem* p_cg, enum cpuGpuMemVar keyword);
 
 
 void cpuGpuMemCopy(enum cudaMemcpyKind copyKind, struct CpuGpuMem* p_cg, void* destPtr, void* srcPtr, int allocSize);

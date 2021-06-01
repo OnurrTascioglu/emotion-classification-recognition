@@ -15,18 +15,18 @@
 #include <string>
 #include <sstream>
 #include <math.h>
-
+#include <time.h>
 
 #define IMAGE_WIDTH 48
 #define IMAGE_HEIGHT 48
 #define TOTAL_IMAGE 35888
 #define EMOTION_COUNT 7
 #define MASK_SIZE 3
-#define MASK_COUNT_FIRST_LAYER 4
-#define MASK_COUNT_HIDDEN_LAYER_1 6
+#define MASK_COUNT_FIRST_LAYER 4096
+#define MASK_COUNT_HIDDEN_LAYER_1 128
 #define DENSE_HIDDEN_LAYER 128
 
-#define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler\\"
+#define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler2\\"
 
 
 namespace EmotionClassification {
@@ -59,7 +59,7 @@ namespace EmotionClassification {
 		//statik
 		float* convFirstLayerWeights;
 		float* convHiddenLayerWeights_1;
-		float* denseFirstLayerWeights;
+		float* denseWeights;
 		float* denseHiddenLayerWeights_1;
 		float* batchNormWeight;
 		float* batchNormWeight_1;
@@ -620,28 +620,28 @@ namespace EmotionClassification {
 		//----- input layer cnn
 		string filePath = input + "conv2d.csv";
 		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-		readWeightFromFile(convFirstLayerWeights, filePath);
+		//readWeightFromFile(convFirstLayerWeights, filePath);
 
 
 		//----- 2. layer cnn
 		filePath = input + "conv2d_1.csv";
 		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
-		readWeightFromFile(convHiddenLayerWeights_1, filePath);
+		//readWeightFromFile(convHiddenLayerWeights_1, filePath);
 
 		//----- 1. batch norm
 		filePath = input + "batch_normalization.csv";
 		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
-		readWeightFromFile(batchNormWeight, filePath);
+		//readWeightFromFile(batchNormWeight, filePath);
 
 		//----- 2. batch norm
 		filePath = input + "batch_normalization_1.csv";
 		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
-		readWeightFromFile(batchNormWeight_1, filePath);
+		//readWeightFromFile(batchNormWeight_1, filePath);
 
 		//----- 3. batch norm
 		filePath = input + "batch_normalization_2.csv";
 		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER * 4];
-		readWeightFromFile(batchNormWeight_2, filePath);
+		//readWeightFromFile(batchNormWeight_2, filePath);
 
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
@@ -651,6 +651,8 @@ namespace EmotionClassification {
 
 		float* fResult = new float[size];
 
+
+		clock_t tStart = clock();
 		//1. cnn layer
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
 		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
@@ -700,19 +702,22 @@ namespace EmotionClassification {
 		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1, 2, 2);
 
-		richTextBox1->Text = " ";
-		for (int i = 0; i < 600; i++) {
-			richTextBox1->Text += fHiddenResult[i] + "\n";
-		}
 
 		//----- FullyConnected Layer 1
 		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		int sizeTemp = MASK_COUNT_HIDDEN_LAYER_1 * sizeW * sizeH;
 		float* denseResult = new float[DENSE_HIDDEN_LAYER];
 		filePath = input + "dense.csv";
-		denseFirstLayerWeights = new float[sizeTemp * DENSE_HIDDEN_LAYER + DENSE_HIDDEN_LAYER];
-		readWeightFromFile(denseFirstLayerWeights, filePath);
-		denseResult = dense(fHiddenResult, denseFirstLayerWeights, sizeTemp, DENSE_HIDDEN_LAYER);
+		denseWeights = new float[sizeTemp * DENSE_HIDDEN_LAYER + DENSE_HIDDEN_LAYER];
+		//readWeightFromFile(denseWeights, filePath);
+		
+
+		
+
+		denseResult = dense(fHiddenResult, denseWeights, sizeTemp, DENSE_HIDDEN_LAYER);
+
+
+
 
 		batchNormalizationDense(denseResult, batchNormWeight_2, DENSE_HIDDEN_LAYER);
 		reLU(denseResult, DENSE_HIDDEN_LAYER, 1, 1);
@@ -723,6 +728,10 @@ namespace EmotionClassification {
 		readWeightFromFile(denseHiddenLayerWeights_1, filePath);
 		denseResult = dense(denseResult, denseHiddenLayerWeights_1, DENSE_HIDDEN_LAYER, 7);
 
+		double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+		richTextBox1->Text += "cpu clock time: " + cpuClock + " \n";
+
+
 		softmax(denseResult, 7);
 
 		string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
@@ -732,7 +741,8 @@ namespace EmotionClassification {
 			String^ str = gcnew String(emot[i].c_str());
 			chart1->Series["Duygular"]->Points->AddXY(str, denseResult[i]);
 		}
-		
+
+
 
 		
 
@@ -857,6 +867,23 @@ namespace EmotionClassification {
 	}
 
 	void setValuesForGpuConv1(CpuGpuMem* cg) {
+		//------ File Path
+		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
+		const char* inputStr = static_cast<const char*>(ip.ToPointer());
+		std::string input(inputStr);
+		//------ File Path
+
+		//----- read weights from file
+		string filePath = input + "conv2d.csv";
+		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
+		//readWeightFromFile(convFirstLayerWeights, filePath);
+
+		//----- 1. batch norm
+		filePath = input + "batch_normalization.csv";
+		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
+		//readWeightFromFile(batchNormWeight, filePath);
+
+
 		cg->imageHeightSize = IMAGE_HEIGHT;
 		cg->imageWidthSize = IMAGE_WIDTH;
 		cg->featureWidthSize = IMAGE_WIDTH - MASK_SIZE + 1; // no Padding
@@ -866,11 +893,12 @@ namespace EmotionClassification {
 		cg->maskDim = 1;
 		cg->pool = 2;
 		cg->stride = 2;
+		cg->batchWeightSize = cg->maskCount;
 
-		cpuGpuAlloc(cg, 'i', sizeof(int));
-		cpuGpuAlloc(cg, 'f', sizeof(float));
-		cpuGpuAlloc(cg, 'm', sizeof(float));
-		cpuGpuAlloc(cg, 'b', sizeof(float));//batch for conv1
+		cpuGpuAlloc(cg, imageEnum, sizeof(int));
+		cpuGpuAlloc(cg, featureEnum, sizeof(float));
+		cpuGpuAlloc(cg, maskEnum, sizeof(float));
+		cpuGpuAlloc(cg, batchEnum, sizeof(float));//batch for conv1
 
 		for (int i = 0; i < cg->maskCount * 4; i++)
 			cg->cpuBatchPtr[i] = batchNormWeight[i];
@@ -895,28 +923,45 @@ namespace EmotionClassification {
 			cg->cpuMaskPtr[cg->maskCount * MASK_SIZE * MASK_SIZE + i] = convFirstLayerWeights[cg->maskCount * MASK_SIZE * MASK_SIZE + i];
 		}
 
+
+
+
 	}
+
 	void setValuesForGpuConvHidden(CpuGpuMem* cg) {
+
+		//------ File Path
+		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
+		const char* inputStr = static_cast<const char*>(ip.ToPointer());
+		std::string input(inputStr);
+		//------ File Path
+
+		//----- 2. layer cnn
+		string filePath = input + "conv2d_1.csv";
+		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
+		//readWeightFromFile(convHiddenLayerWeights_1, filePath);
+
+		//----- 2. batch norm
+		free(batchNormWeight);
+		filePath = input + "batch_normalization_1.csv";
+		batchNormWeight = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
+		//readWeightFromFile(batchNormWeight, filePath);
+
 
 		cg->maskWHSize = MASK_SIZE;
 		cg->maskCount = MASK_COUNT_HIDDEN_LAYER_1;
 		cg->maskDim = MASK_COUNT_FIRST_LAYER;
-		cg->dtoFeatureHeightSize = cg->featureHeightSize - MASK_SIZE + 1;
-		cg->dtoFeatureWidthSize = cg->featureWidthSize - MASK_SIZE + 1;
+		cg->batchWeightSize = cg->maskCount;
 
-
-		cpuGpuAlloc(cg, 'd', sizeof(float));
-		cpuGpuFree(cg,'m');
-		cpuGpuFree(cg, 'b');
-		cpuGpuAlloc(cg, 'm' , sizeof(float)); //  mask allocation for 2. conv layer
-		cpuGpuAlloc(cg, 'b', sizeof(float));
+		cpuGpuFree(cg,imageEnum);
+		cpuGpuFree(cg,maskEnum);
+		cpuGpuFree(cg,batchEnum);
+		cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  mask allocation for 2. conv layer
+		cpuGpuAlloc(cg, batchEnum, sizeof(float));
 
 		for (int i = 0; i < cg->maskCount * 4; i++)
-			cg->cpuBatchPtr[i] = batchNormWeight_1[i];
+			cg->cpuBatchPtr[i] = batchNormWeight[i];
 
-		for (int i = 0; i < cg->maskCount * cg->dtoFeatureHeightSize * cg->dtoFeatureWidthSize; i++) {
-			cg->cpuDtoFeaturePtr[i] = 0.0;
-		}
 
 		//weights resorting
 		int count = 0;
@@ -938,37 +983,81 @@ namespace EmotionClassification {
 
 	}
 
-	private: System::Void cudaRunToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+	void setValuesForGpuDense(CpuGpuMem* cg) {
+		//------ File Path
+		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
+		const char* inputStr = static_cast<const char*>(ip.ToPointer());
+		std::string input(inputStr);
+		//------ File Path
+		
+
+		//----- 3. batch norm
+		free(batchNormWeight);
+		string filePath = input + "batch_normalization_2.csv";
+		batchNormWeight = new float[DENSE_HIDDEN_LAYER * 4];
+		//readWeightFromFile(batchNormWeight, filePath);
+
+		cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;
+		cg->denseOutputSize = DENSE_HIDDEN_LAYER;
+
+		//------ dense
+		filePath = input + "dense.csv";
+		denseWeights = new float[cg->denseInputSize * cg->denseOutputSize + cg->denseOutputSize];
+		//readWeightFromFile(denseWeights, filePath);
+
+	
+
+		cpuGpuAlloc(cg, denseEnum, sizeof(float));
+		cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
+
+		cpuGpuFree(cg,maskEnum);
+
+		cpuGpuFree(cg,batchEnum);
+		cg->batchWeightSize = cg->denseOutputSize;
+		cpuGpuAlloc(cg, batchEnum, sizeof(float));
+
+		cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize);
+
+		//for (int i = 0; i < cg->denseOutputSize * 4; i++)
+		//	cg->cpuBatchPtr[i] = batchNormWeight[i];
+
+		/*for (int i = 0; i < (cg->denseWeightAllocSize / sizeof(float)); i++) {
+			cg->cpuDenseWeightPtr[i] = denseWeights[i];
+		}*/
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, cg->cpuDenseWeightPtr, cg->denseWeightAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight, cg->batchWeightSize);
+	}
+
+	void setValuesForGpuDense2(CpuGpuMem* cg) {
 		//------ File Path
 		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
 		const char* inputStr = static_cast<const char*>(ip.ToPointer());
 		std::string input(inputStr);
 		//------ File Path
 
-		//----- read weights from file
-		string filePath = input + "conv2d.csv";
-		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-		readWeightFromFile(convFirstLayerWeights, filePath);
+		cg->denseInputSize = DENSE_HIDDEN_LAYER;
+		cg->denseOutputSize = EMOTION_COUNT;
 
-		//----- 2. layer cnn
-		filePath = input + "conv2d_1.csv";
-		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
-		readWeightFromFile(convHiddenLayerWeights_1, filePath);
+		free(denseWeights);
+		//----- FullyConnected Layer 2
+		string filePath = input + "dense_1.csv";
+		denseWeights = new float[EMOTION_COUNT * DENSE_HIDDEN_LAYER + EMOTION_COUNT];
+		//readWeightFromFile(denseWeights, filePath);
 
-		//----- 1. batch norm
-		filePath = input + "batch_normalization.csv";
-		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
-		readWeightFromFile(batchNormWeight, filePath);
+		cpuGpuFree(cg,batchEnum);
+		cpuGpuFree(cg,denseWeightEnum);
 
-		//----- 2. batch norm
-		filePath = input + "batch_normalization_1.csv";
-		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
-		readWeightFromFile(batchNormWeight_1, filePath);
+		cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
 
-		//----- 3. batch norm
-		filePath = input + "batch_normalization_2.csv";
-		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER * 4];
-		readWeightFromFile(batchNormWeight_2, filePath);
+
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseWeights, cg->denseWeightAllocSize);
+	}
+
+
+
+	private: System::Void cudaRunToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+
+		clock_t tStart = clock();
 
 		const int instance_count = 1;
 
@@ -978,13 +1067,15 @@ namespace EmotionClassification {
 		{
 			CpuGpuMem* cg = &cgs[i];
 			
+			//----forConv1
 			setValuesForGpuConv1(cg); // func
 
 			cudaError_t result = cudaStreamCreate(&cg->stream);
 			assert(result == cudaSuccess);
+			
 
+			//cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
 
-			cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
 		}
 
 		for (int i = 0; i < instance_count; i++)
@@ -996,41 +1087,52 @@ namespace EmotionClassification {
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
 
+			//---------conv2
 			conv1ExecGPU(cg); //conv1
 
-			setValuesForGpuConvHidden(cg);
+			//---------conv2
+			setValuesForGpuConvHidden(cg); // conv2
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDtoFeaturePtr, cg->cpuDtoFeaturePtr, cg->dtoFeatureAllocSize);
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+
 			convHidden1ExecGPU(cg);
 
+			//---------Dense1
+			setValuesForGpuDense(cg);
+
+			dense1ExecGPU(cg);
+
+			//---------Dense2
+			setValuesForGpuDense2(cg);
+			dense2ExecGPU(cg);
+
+			softmax(cg->cpuDensePtr, 7);
 
 
-			//cudamemset();
+			double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+			richTextBox1->Text += "gpu clock time: " + cpuClock + " \n";
 
-			cudaDeviceSynchronize();
-			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuImagePtr, cg->gpuImagePtr, cg->imageAllocSize); // device to host
-			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuFeaturePtr, cg->featureAllocSize);
-			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuMaskPtr, cg->gpuMaskPtr, cg->maskAllocSize);
-			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuDtoFeaturePtr, cg->gpuDtoFeaturePtr, cg->dtoFeatureAllocSize);
-			
-			richTextBox1->Text = " ";
-			for (int i = 0; i < 600; i++) {
-				richTextBox1->Text += cg->cpuDtoFeaturePtr[i] + "\n";
+
+			string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
+
+			chart1->Series["Duygular"]->Points->Clear();
+			for (int i = 0; i < 7; i++) {
+				String^ str = gcnew String(emot[i].c_str());
+				chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
 			}
 
+
+
+
+			cudaDeviceSynchronize();
 		}
 
 		for (int i = 0; i < instance_count; i++)
 		{
 			CpuGpuMem* cg = &cgs[i];
 
-			cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
-			cpuGpuFree(cg, 'i');
-			cpuGpuFree(cg, 'f');
-			cpuGpuFree(cg, 'm');
-			cpuGpuFree(cg, 'b');
-			cpuGpuFree(cg, 'd');
+			//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
+			cpuGpuFree(cg, featureEnum);
 			cudaError_t result = cudaStreamDestroy(cg->stream);
 			assert(result == cudaSuccess);
 		}
@@ -1038,22 +1140,21 @@ namespace EmotionClassification {
 		cudaError_t result = cudaDeviceSynchronize();
 		assert(result == cudaSuccess);
 
-		//cpu_gpu_print_results(&cg);
 
 	}
 
 	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
-		delete[] ferImages;
-		delete[] emotionLabel;
-		delete[] bmpColoredImage;
-		delete[] raw_intensity;
-		delete[] convFirstLayerWeights;
-		delete[] convHiddenLayerWeights_1;
-		delete[] denseFirstLayerWeights;
-		delete[] denseHiddenLayerWeights_1;
-		delete[] batchNormWeight;
-		delete[] batchNormWeight_1;
-		delete[] batchNormWeight_2;
+		free(ferImages);
+		free(emotionLabel);
+		free(bmpColoredImage);
+		free(raw_intensity);
+		free(convFirstLayerWeights);
+		free(convHiddenLayerWeights_1);
+		free(denseWeights);
+		free(denseHiddenLayerWeights_1);
+		free(batchNormWeight);
+		free(batchNormWeight_1);
+		free(batchNormWeight_2);
 	}
 
 
