@@ -1,4 +1,5 @@
 #pragma once
 #include "cpuGpuMem.h"
 
-void conv1ExecGPU(CpuGpuMem* cg, const int maskCount);
+void conv1ExecGPU(CpuGpuMem* cg);
+void convHidden1ExecGPU(CpuGpuMem* cg);

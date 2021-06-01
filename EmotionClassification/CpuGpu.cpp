@@ -14,56 +14,61 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, char keyword, int sizeOfType)
 
 		if (p_cg->imageAllocSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuImagePtr = (int*)malloc(p_cg->imageAllocSize);
-			result = cudaMalloc(&p_cg->gpuImagePtr, p_cg->imageAllocSize);
+			result = cudaMalloc((int**)&p_cg->gpuImagePtr, p_cg->imageAllocSize);
 			assert(result == cudaSuccess);
 		}
 		else {
 			assert(true);
 		}
+		break;
 	case 'f':
 		p_cg->featureAllocSize = p_cg->featureWidthSize * p_cg->featureHeightSize * p_cg->maskCount * sizeOfType;
 
 		if (p_cg->featureAllocSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuFeaturePtr = (float*)malloc(p_cg->featureAllocSize);
-			result = cudaMalloc(&p_cg->gpuFeaturePtr, p_cg->featureAllocSize);
+			result = cudaMalloc((float**)&p_cg->gpuFeaturePtr, p_cg->featureAllocSize);
 			assert(result == cudaSuccess);
 		}
 		else {
 			assert(true);
 		}
+		break;
 	case 'd':
 		p_cg->dtoFeatureAllocSize = p_cg->dtoFeatureWidthSize * p_cg->dtoFeatureHeightSize * p_cg->maskCount * sizeOfType;
 
 		if (p_cg->dtoFeatureAllocSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuDtoFeaturePtr = (float*)malloc(p_cg->dtoFeatureAllocSize);
-			result = cudaMalloc(&p_cg->gpuDtoFeaturePtr, p_cg->dtoFeatureAllocSize);
+			result = cudaMalloc((float**)&p_cg->gpuDtoFeaturePtr, p_cg->dtoFeatureAllocSize);
 			assert(result == cudaSuccess);
 		}
 		else {
 			assert(true);
 		}
+		break;
 	case 'm':
-		p_cg->maskAllocSize = (p_cg->maskWHSize * p_cg->maskWHSize * p_cg->maskCount * p_cg->maskDim + p_cg->maskCount) * sizeOfType*250;
+		p_cg->maskAllocSize = (p_cg->maskWHSize * p_cg->maskWHSize * p_cg->maskCount * p_cg->maskDim + p_cg->maskCount) * sizeOfType;
 
 		if (p_cg->maskAllocSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuMaskPtr = (float*)malloc(p_cg->maskAllocSize);
-			result = cudaMalloc(&p_cg->gpuMaskPtr, p_cg->maskAllocSize);
+			result = cudaMalloc((float**)&p_cg->gpuMaskPtr, p_cg->maskAllocSize);
 			assert(result == cudaSuccess);
 		}
 		else {
 			assert(true);
 		}
+		break;
 	case 'b':
 		p_cg->batchWeightSize = p_cg->maskCount * 4  * sizeOfType;
 
 		if (p_cg->batchWeightSize < 3.5 * 1024 * 1024 * 1024) {
 			p_cg->cpuBatchPtr = (float*)malloc(p_cg->batchWeightSize);
-			result = cudaMalloc(&p_cg->gpuBatchPtr, p_cg->batchWeightSize);
+			result = cudaMalloc((float**)&p_cg->gpuBatchPtr, p_cg->batchWeightSize);
 			assert(result == cudaSuccess);
 		}
 		else {
 			assert(true);
 		}
+		break;
 	default:
 		assert(true);
 		break;

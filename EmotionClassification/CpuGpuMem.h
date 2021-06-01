@@ -10,6 +10,7 @@ struct CpuGpuMem {
 
 	float* cpuFeaturePtr; //for feature
 	float* gpuFeaturePtr;
+	float* gpuFeaturePtrTemp;
 	int featureWidthSize;
 	int featureHeightSize;
 	long long int featureAllocSize;

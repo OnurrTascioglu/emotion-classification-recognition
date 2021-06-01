@@ -655,19 +655,15 @@ namespace EmotionClassification {
 		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
 		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		richTextBox1->Text = " ";
-		for (int i = 0; i < 100; i++) {
-			richTextBox1->Text += fResult[i] + "\n";
-		}
 		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
 		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
-
 
 
 		//2.cnn layer
 		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_HIDDEN_LAYER_1];
 		fHiddenResult = convHidden(fResult, convHiddenLayerWeights_1, sizeW, sizeH, MASK_SIZE, MASK_COUNT_HIDDEN_LAYER_1, MASK_COUNT_FIRST_LAYER);
 		size = sizeW * sizeH * MASK_COUNT_HIDDEN_LAYER_1;
+
 
 
 
@@ -703,6 +699,11 @@ namespace EmotionClassification {
 		batchNormalizationConv(fHiddenResult, batchNormWeight_1, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
 		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1, 2, 2);
+
+		richTextBox1->Text = " ";
+		for (int i = 0; i < 600; i++) {
+			richTextBox1->Text += fHiddenResult[i] + "\n";
+		}
 
 		//----- FullyConnected Layer 1
 		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
@@ -863,6 +864,8 @@ namespace EmotionClassification {
 		cg->maskWHSize = MASK_SIZE;
 		cg->maskCount = MASK_COUNT_FIRST_LAYER;
 		cg->maskDim = 1;
+		cg->pool = 2;
+		cg->stride = 2;
 
 		cpuGpuAlloc(cg, 'i', sizeof(int));
 		cpuGpuAlloc(cg, 'f', sizeof(float));
@@ -893,6 +896,47 @@ namespace EmotionClassification {
 		}
 
 	}
+	void setValuesForGpuConvHidden(CpuGpuMem* cg) {
+
+		cg->maskWHSize = MASK_SIZE;
+		cg->maskCount = MASK_COUNT_HIDDEN_LAYER_1;
+		cg->maskDim = MASK_COUNT_FIRST_LAYER;
+		cg->dtoFeatureHeightSize = cg->featureHeightSize - MASK_SIZE + 1;
+		cg->dtoFeatureWidthSize = cg->featureWidthSize - MASK_SIZE + 1;
+
+
+		cpuGpuAlloc(cg, 'd', sizeof(float));
+		cpuGpuFree(cg,'m');
+		cpuGpuFree(cg, 'b');
+		cpuGpuAlloc(cg, 'm' , sizeof(float)); //  mask allocation for 2. conv layer
+		cpuGpuAlloc(cg, 'b', sizeof(float));
+
+		for (int i = 0; i < cg->maskCount * 4; i++)
+			cg->cpuBatchPtr[i] = batchNormWeight_1[i];
+
+		for (int i = 0; i < cg->maskCount * cg->dtoFeatureHeightSize * cg->dtoFeatureWidthSize; i++) {
+			cg->cpuDtoFeaturePtr[i] = 0.0;
+		}
+
+		//weights resorting
+		int count = 0;
+		for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
+			for (int j = 0; j < cg->maskDim; j++) {
+				for (int k = 0; k < cg->maskCount; k++) {
+					cg->cpuMaskPtr[k * cg->maskWHSize * cg->maskWHSize * cg->maskDim + (j * cg->maskWHSize * cg->maskWHSize) + i] = convHiddenLayerWeights_1[count];
+					count++;
+				}
+			}
+		}
+
+		for (int i = 0; i < cg->maskCount; i++)
+		{
+			cg->cpuMaskPtr[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i] =
+				convHiddenLayerWeights_1[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
+		}
+
+
+	}
 
 	private: System::Void cudaRunToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		//------ File Path
@@ -916,6 +960,15 @@ namespace EmotionClassification {
 		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
 		readWeightFromFile(batchNormWeight, filePath);
 
+		//----- 2. batch norm
+		filePath = input + "batch_normalization_1.csv";
+		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
+		readWeightFromFile(batchNormWeight_1, filePath);
+
+		//----- 3. batch norm
+		filePath = input + "batch_normalization_2.csv";
+		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER * 4];
+		readWeightFromFile(batchNormWeight_2, filePath);
 
 		const int instance_count = 1;
 
@@ -937,14 +990,21 @@ namespace EmotionClassification {
 		for (int i = 0; i < instance_count; i++)
 		{
 			CpuGpuMem* cg = &cgs[i];
-			
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize ); // host to device
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize );
+
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
 			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
 
+			conv1ExecGPU(cg); //conv1
 
-			conv1ExecGPU(cg, MASK_COUNT_FIRST_LAYER); //conv1
+			setValuesForGpuConvHidden(cg);
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDtoFeaturePtr, cg->cpuDtoFeaturePtr, cg->dtoFeatureAllocSize);
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+			convHidden1ExecGPU(cg);
+
+
 
 			//cudamemset();
 
@@ -952,11 +1012,13 @@ namespace EmotionClassification {
 			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuImagePtr, cg->gpuImagePtr, cg->imageAllocSize); // device to host
 			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuFeaturePtr, cg->featureAllocSize);
 			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuMaskPtr, cg->gpuMaskPtr, cg->maskAllocSize);
-
+			cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuDtoFeaturePtr, cg->gpuDtoFeaturePtr, cg->dtoFeatureAllocSize);
+			
 			richTextBox1->Text = " ";
- 			for (int i = 0; i < 100; i++) {
-				richTextBox1->Text += cg->cpuFeaturePtr[i] + "\n";
+			for (int i = 0; i < 600; i++) {
+				richTextBox1->Text += cg->cpuDtoFeaturePtr[i] + "\n";
 			}
+
 		}
 
 		for (int i = 0; i < instance_count; i++)
@@ -968,6 +1030,7 @@ namespace EmotionClassification {
 			cpuGpuFree(cg, 'f');
 			cpuGpuFree(cg, 'm');
 			cpuGpuFree(cg, 'b');
+			cpuGpuFree(cg, 'd');
 			cudaError_t result = cudaStreamDestroy(cg->stream);
 			assert(result == cudaSuccess);
 		}
