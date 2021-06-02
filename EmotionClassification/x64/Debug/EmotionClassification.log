@@ -1,6 +1,4 @@
 ﻿  MyForm.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(602,4): warning C4129: 'd': unrecognized character escape sequence
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(737,4): warning C4129: 'd': unrecognized character escape sequence
 C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(652,43): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(655,43): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(851,79): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data

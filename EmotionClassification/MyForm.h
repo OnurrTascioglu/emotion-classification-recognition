@@ -22,13 +22,13 @@
 #define TOTAL_IMAGE 35888
 #define MASK_SIZE 3
 
-#define MASK_COUNT_FIRST_LAYER 128
+#define MASK_COUNT_FIRST_LAYER 64
 #define MASK_COUNT_HIDDEN_LAYER_1
 #define MASK_COUNT_HIDDEN_LAYER_2 
 #define MASK_COUNT_HIDDEN_LAYER_3 
-#define MASK_COUNT_OUTPUT_LAYER 64 //output from conv layer = dense input layer
+#define MASK_COUNT_OUTPUT_LAYER 32 //output from conv layer = dense input layer
 
-#define DENSE_HIDDEN_LAYER_1 256
+#define DENSE_HIDDEN_LAYER_1 128
 #define DENSE_OUTPUT_LAYER 7
 
 #define MAX_POOL 2
@@ -599,7 +599,7 @@ namespace EmotionClassification {
 		Int32 myInt = 0;
 
 		if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
-			"^[1-9]\d*$"))
+			"^[1-9][0-9]{1,5}$"))
 		{
 			myInt = System::Convert::ToInt32(textBox1->Text);
 
@@ -734,7 +734,7 @@ namespace EmotionClassification {
 		Int32 myInt = 0;
 
 		if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
-			"^[1-9]\d*$"))
+			"^[1-9][0-9]{1,5}$"))
 		{
 			myInt = System::Convert::ToInt32(textBox1->Text);
 
@@ -882,7 +882,6 @@ namespace EmotionClassification {
 
 		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseOutputLayerWeights, cg->denseWeightAllocSize);
 	}
-
 
 
 	private: System::Void cudaRunToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {

@@ -23,14 +23,15 @@ __global__ void conv1GPU(int* image, float* resultImages, float* masks, int widt
 		temp = id / rMatrixWidth;
 		int i = temp % rMatrixHeight;
 		int m = temp / rMatrixHeight;
+		float tempSum = 0.0;
 
 		for (int k = 0; k < maskSize * maskSize; k++) {
 			int mCol = k % maskSize;
 			int mRow = k / maskSize;
-			resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] +=
+			tempSum +=
 				(float)image[(width * i + j) + mRow * width + mCol] * masks[m * (maskSize * maskSize) + k];
 		}
-		resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += (float)BIAS * masks[maskCount * (maskSize * maskSize) + m];
+		resultImages[(m * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] =  tempSum + (float)BIAS * masks[maskCount * (maskSize * maskSize) + m];
 	}
 }
 
@@ -102,17 +103,17 @@ __global__ void convHiddenGPU(float* feature, float* resultImages, float* weight
 		temp = id / rMatrixWidth;
 		int i = temp % rMatrixHeight;
 		int c = temp / rMatrixHeight;
+		float tempSum = 0.0;
 
 		for (int d = 0; d < maskDim; d++) {
 			for (int k = 0; k < maskSize * maskSize; k++) {
 				int mCol = k % maskSize;
 				int mRow = k / maskSize;
-				resultImages[(c * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] +=
-					(float)feature[d * fWidth * fHeight + (fWidth * i + j) + mRow * fWidth + mCol] * weights[c * (maskDim * maskSize * maskSize) + d * maskSize * maskSize + k];
+				tempSum +=	(float)feature[d * fWidth * fHeight + (fWidth * i + j) + mRow * fWidth + mCol] * weights[c * (maskDim * maskSize * maskSize) + d * maskSize * maskSize + k];
 
 			}
 		}
-		resultImages[(c * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] += BIAS * weights[maskCount * maskDim * maskSize * maskSize + c];
+		resultImages[(c * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] = tempSum + BIAS * weights[maskCount * maskDim * maskSize * maskSize + c];
 	}
 }
 
@@ -136,11 +137,12 @@ __global__ void denseGPU(float* inputLayer, float* outputLayer, float* weights, 
 
 	if (id < outputLayerSize) {
 		// optimize edilmeli
+		float tempSum = 0.0;
 
 		for (int j = 0; j < inputLayerSize; j++) {
-			outputLayer[id] += inputLayer[j] * weights[j * outputLayerSize + id];
+			tempSum += inputLayer[j] * weights[j * outputLayerSize + id];
 		}
-		outputLayer[id] += BIAS * weights[inputLayerSize * outputLayerSize + id];
+		outputLayer[id] = tempSum + BIAS * weights[inputLayerSize * outputLayerSize + id];
 
 	}
 }
