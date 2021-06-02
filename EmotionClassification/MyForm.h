@@ -20,14 +20,22 @@
 #define IMAGE_WIDTH 48
 #define IMAGE_HEIGHT 48
 #define TOTAL_IMAGE 35888
-#define EMOTION_COUNT 7
 #define MASK_SIZE 3
-#define MASK_COUNT_FIRST_LAYER 4096
-#define MASK_COUNT_HIDDEN_LAYER_1 128
-#define DENSE_HIDDEN_LAYER 128
+
+#define MASK_COUNT_FIRST_LAYER 128
+#define MASK_COUNT_HIDDEN_LAYER_1
+#define MASK_COUNT_HIDDEN_LAYER_2 
+#define MASK_COUNT_HIDDEN_LAYER_3 
+#define MASK_COUNT_OUTPUT_LAYER 64 //output from conv layer = dense input layer
+
+#define DENSE_HIDDEN_LAYER_1 256
+#define DENSE_OUTPUT_LAYER 7
+
+#define MAX_POOL 2
+#define MAX_POOL_STRIDE 2
 
 #define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler2\\"
-
+#define FEATURE_RESULT_PATH "D:\\Ders\\bitirme\\features\\"
 
 namespace EmotionClassification {
 
@@ -57,14 +65,15 @@ namespace EmotionClassification {
 
 
 		//statik
-		float* convFirstLayerWeights;
+		float* convInputLayerWeights;
 		float* convHiddenLayerWeights_1;
-		float* denseWeights;
+		float* convOutputLayerWeights;
+
 		float* denseHiddenLayerWeights_1;
+		float* denseOutputLayerWeights;
 		float* batchNormWeight;
 		float* batchNormWeight_1;
 		float* batchNormWeight_2;
-
 
 		int ferTextBoxInput = 0;
 
@@ -73,10 +82,10 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::TextBox^ textBox1;
 	private: System::Windows::Forms::ToolStripMenuItem^ testToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ runToolStripMenuItem;
-	private: System::Windows::Forms::PictureBox^ pictureBox2;
-	private: System::Windows::Forms::PictureBox^ pictureBox3;
-	private: System::Windows::Forms::PictureBox^ pictureBox4;
-	private: System::Windows::Forms::PictureBox^ pictureBox5;
+
+
+
+
 	private: System::Windows::Forms::DataVisualization::Charting::Chart^ chart1;
 	private: System::Windows::Forms::ToolStripMenuItem^ cudaRunToolStripMenuItem;
 	private: System::Windows::Forms::Button^ button2;
@@ -127,9 +136,9 @@ namespace EmotionClassification {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea2 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
-			System::Windows::Forms::DataVisualization::Charting::Legend^ legend2 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
-			System::Windows::Forms::DataVisualization::Charting::Series^ series2 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
+			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea1 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
+			System::Windows::Forms::DataVisualization::Charting::Legend^ legend1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
+			System::Windows::Forms::DataVisualization::Charting::Series^ series1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
 			this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
 			this->dosyaToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -144,18 +153,10 @@ namespace EmotionClassification {
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 			this->button1 = (gcnew System::Windows::Forms::Button());
-			this->pictureBox2 = (gcnew System::Windows::Forms::PictureBox());
-			this->pictureBox3 = (gcnew System::Windows::Forms::PictureBox());
-			this->pictureBox4 = (gcnew System::Windows::Forms::PictureBox());
-			this->pictureBox5 = (gcnew System::Windows::Forms::PictureBox());
 			this->chart1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Chart());
 			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -223,14 +224,14 @@ namespace EmotionClassification {
 			// runToolStripMenuItem
 			// 
 			this->runToolStripMenuItem->Name = L"runToolStripMenuItem";
-			this->runToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->runToolStripMenuItem->Size = System::Drawing::Size(151, 26);
 			this->runToolStripMenuItem->Text = L"Run";
 			this->runToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::runToolStripMenuItem_Click);
 			// 
 			// cudaRunToolStripMenuItem
 			// 
 			this->cudaRunToolStripMenuItem->Name = L"cudaRunToolStripMenuItem";
-			this->cudaRunToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->cudaRunToolStripMenuItem->Size = System::Drawing::Size(151, 26);
 			this->cudaRunToolStripMenuItem->Text = L"CudaRun";
 			this->cudaRunToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::cudaRunToolStripMenuItem_Click);
 			// 
@@ -265,6 +266,7 @@ namespace EmotionClassification {
 			// 
 			// button1
 			// 
+			this->button1->Enabled = false;
 			this->button1->Location = System::Drawing::Point(1339, 40);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(100, 28);
@@ -273,60 +275,25 @@ namespace EmotionClassification {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &MyForm::button1_Click);
 			// 
-			// pictureBox2
-			// 
-			this->pictureBox2->Location = System::Drawing::Point(12, 385);
-			this->pictureBox2->Name = L"pictureBox2";
-			this->pictureBox2->Size = System::Drawing::Size(207, 192);
-			this->pictureBox2->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
-			this->pictureBox2->TabIndex = 5;
-			this->pictureBox2->TabStop = false;
-			// 
-			// pictureBox3
-			// 
-			this->pictureBox3->Location = System::Drawing::Point(240, 385);
-			this->pictureBox3->Name = L"pictureBox3";
-			this->pictureBox3->Size = System::Drawing::Size(207, 192);
-			this->pictureBox3->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
-			this->pictureBox3->TabIndex = 6;
-			this->pictureBox3->TabStop = false;
-			// 
-			// pictureBox4
-			// 
-			this->pictureBox4->Location = System::Drawing::Point(470, 385);
-			this->pictureBox4->Name = L"pictureBox4";
-			this->pictureBox4->Size = System::Drawing::Size(207, 192);
-			this->pictureBox4->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
-			this->pictureBox4->TabIndex = 7;
-			this->pictureBox4->TabStop = false;
-			// 
-			// pictureBox5
-			// 
-			this->pictureBox5->Location = System::Drawing::Point(696, 385);
-			this->pictureBox5->Name = L"pictureBox5";
-			this->pictureBox5->Size = System::Drawing::Size(207, 192);
-			this->pictureBox5->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
-			this->pictureBox5->TabIndex = 8;
-			this->pictureBox5->TabStop = false;
-			// 
 			// chart1
 			// 
-			chartArea2->Name = L"ChartArea1";
-			this->chart1->ChartAreas->Add(chartArea2);
-			legend2->Name = L"Legend1";
-			this->chart1->Legends->Add(legend2);
+			chartArea1->Name = L"ChartArea1";
+			this->chart1->ChartAreas->Add(chartArea1);
+			legend1->Name = L"Legend1";
+			this->chart1->Legends->Add(legend1);
 			this->chart1->Location = System::Drawing::Point(453, 31);
 			this->chart1->Name = L"chart1";
-			series2->ChartArea = L"ChartArea1";
-			series2->Legend = L"Legend1";
-			series2->Name = L"Duygular";
-			this->chart1->Series->Add(series2);
+			series1->ChartArea = L"ChartArea1";
+			series1->Legend = L"Legend1";
+			series1->Name = L"Duygular";
+			this->chart1->Series->Add(series1);
 			this->chart1->Size = System::Drawing::Size(821, 348);
 			this->chart1->TabIndex = 9;
 			this->chart1->Text = L"chart1";
 			// 
 			// button2
 			// 
+			this->button2->Enabled = false;
 			this->button2->Location = System::Drawing::Point(1339, 75);
 			this->button2->Name = L"button2";
 			this->button2->Size = System::Drawing::Size(100, 27);
@@ -342,10 +309,6 @@ namespace EmotionClassification {
 			this->ClientSize = System::Drawing::Size(1451, 592);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->chart1);
-			this->Controls->Add(this->pictureBox5);
-			this->Controls->Add(this->pictureBox4);
-			this->Controls->Add(this->pictureBox3);
-			this->Controls->Add(this->pictureBox2);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->pictureBox1);
@@ -355,13 +318,10 @@ namespace EmotionClassification {
 			this->Name = L"MyForm";
 			this->Text = L"MyForm";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MyForm::MyForm_FormClosing);
+			this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
@@ -370,29 +330,99 @@ namespace EmotionClassification {
 #pragma endregion
 
 	private: System::Void weightsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-		Stream^ mystream;
-		OpenFileDialog^ openFileDialog1 = gcnew OpenFileDialog;
+		//Stream^ mystream;
+		//OpenFileDialog^ openFileDialog1 = gcnew OpenFileDialog;
 
-		openFileDialog1->InitialDirectory = "";
-		openFileDialog1->Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-		openFileDialog1->FilterIndex = 2;
-		openFileDialog1->RestoreDirectory = true;
+		//openFileDialog1->InitialDirectory = "";
+		//openFileDialog1->Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+		//openFileDialog1->FilterIndex = 2;
+		//openFileDialog1->RestoreDirectory = true;
 
-		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
-		{
-			if ((mystream = openFileDialog1->OpenFile()) != nullptr)
-			{
-				// Insert code to read the stream here.
-				String^ strfilename = openFileDialog1->InitialDirectory + openFileDialog1->FileName;
-				readFile = File::ReadAllText(strfilename);
+		//if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+		//{
+		//	if ((mystream = openFileDialog1->OpenFile()) != nullptr)
+		//	{
+		//		// Insert code to read the stream here.
+		//		String^ strfilename = openFileDialog1->InitialDirectory + openFileDialog1->FileName;
+		//		readFile = File::ReadAllText(strfilename);
 
-				richTextBox1->Text = readFile;
+		//		richTextBox1->Text = readFile;
 
-				mystream->Close();
-			}
-		}
+		//		mystream->Close();
+		//	}
+		//}
+		int error = 0;
+		int success = 0;
+
+		MessageBox::Show("Loading Weights");
+
+		//------ File Path
+		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
+		const char* inputStr = static_cast<const char*>(ip.ToPointer());
+		std::string input(inputStr);
+		//------ File Path
+
+		//----- input layer cnn
+		string filePath = input + "conv2d.csv";
+		convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
+		if (readWeightFromFile(convInputLayerWeights, filePath)) error++;
+		else success++;
+
+		int sizeW = IMAGE_WIDTH - MASK_SIZE + 1;
+		int sizeH = IMAGE_HEIGHT - MASK_SIZE + 1;
+		sizeW = sizeW / MAX_POOL_STRIDE;
+		sizeH = sizeH / MAX_POOL_STRIDE;
+
+		//----- 2. layer cnn
+		filePath = input + "conv2d_1.csv";
+		convOutputLayerWeights = new float[MASK_COUNT_OUTPUT_LAYER * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_OUTPUT_LAYER];
+		if (readWeightFromFile(convOutputLayerWeights, filePath)) error++;
+		else success++; 
+
+
+		sizeW = sizeW - MASK_SIZE + 1;
+		sizeH = sizeH - MASK_SIZE + 1;
+		sizeW = sizeW / MAX_POOL_STRIDE;
+		sizeH = sizeH / MAX_POOL_STRIDE;
+
+
+		//----- FullyConnected Layer 1
+		int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
+		float* denseResult = new float[DENSE_HIDDEN_LAYER_1];
+		filePath = input + "dense.csv";
+		denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER_1 + DENSE_HIDDEN_LAYER_1];
+		if (readWeightFromFile(denseHiddenLayerWeights_1, filePath)) error++;
+		else success++;
+
+		//----- FullyConnected Layer 2
+		filePath = input + "dense_1.csv";
+		denseOutputLayerWeights = new float[DENSE_OUTPUT_LAYER * DENSE_HIDDEN_LAYER_1 + DENSE_OUTPUT_LAYER];
+		if (readWeightFromFile(denseOutputLayerWeights, filePath)) error++;
+		else success++;
+
+		//----- 1. batch norm
+		filePath = input + "batch_normalization.csv";
+		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
+		if (readWeightFromFile(batchNormWeight, filePath)) error++;
+		else success++;
+
+		//----- 2. batch norm
+		filePath = input + "batch_normalization_1.csv";
+		batchNormWeight_1 = new float[MASK_COUNT_OUTPUT_LAYER * 4];
+		if (readWeightFromFile(batchNormWeight_1, filePath)) error++;
+		else success++;
+
+		//----- 3. batch norm
+		filePath = input + "batch_normalization_2.csv";
+		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER_1 * 4];
+		if (readWeightFromFile(batchNormWeight_2, filePath)) error++;
+		else success++;
+
+
+		MessageBox::Show(success + " File Successfully Loaded " + "\n" + error + " File Unsuccessfully Loaded ");
+		button1->Enabled = true;
+		button2->Enabled = true;
 	}
-
 	private: System::Void pictureToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		LPCTSTR input;
 		CString str;
@@ -565,7 +595,6 @@ namespace EmotionClassification {
 			}
 		}
 	}
-
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
 		Int32 myInt = 0;
 
@@ -606,133 +635,88 @@ namespace EmotionClassification {
 		}
 
 	}
+	void saveFeatureBMP(float* fResult, int sizeW,int sizeH,int featureCount,char convIndex) {
+		LPCTSTR input;
+		CString str;
+		BYTE* buffer = new BYTE[sizeW * sizeH * featureCount];
+		long* a = new long;
+		BYTE* buffer2;
+		int max = 0;
+		int min = 0;
+		float ratio = 0.0;
+		float* tempResult = new float[featureCount* sizeH* sizeW];
+
+		for (int m = 0; m < featureCount; m++) {
+			for (int i = 0; i < sizeW * sizeH; i++) {
+				if ((int)fResult[(m * sizeW * sizeH) + i] > max) {
+					max = fResult[(m * sizeW * sizeH) + i];
+				}
+				if ((int)fResult[(m * sizeW * sizeH) + i] < min) {
+					min = fResult[(m * sizeW * sizeH) + i];
+				}
+			}
+			for (int i = 0; i < sizeW * sizeH; i++) {
+				tempResult[(m * sizeW * sizeH) + i] = fResult[(m * sizeW * sizeH) + i] - (min);
+			}
+			ratio = (float)(max - min) / 240;
+
+			for (int i = 0; i < sizeW * sizeH; i++) {
+				buffer[(m * sizeW * sizeH) + i] = (int)(tempResult[(m * sizeW * sizeH) + i] / ratio);
+			}
+		}
+		str = FEATURE_RESULT_PATH + "conv" + convIndex + "feature.bmp";
+		input = (LPCTSTR)str;
+		buffer2 = ConvertIntensityToBMP(buffer, sizeW, sizeH*featureCount, a);
+		SaveBMP(buffer2, sizeW, sizeH * featureCount, *a, input);
+	}
 	private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-
-		//------ File Path
-		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
-		const char* inputStr = static_cast<const char*>(ip.ToPointer());
-		std::string input(inputStr);
-		//------ File Path
-
-
-
-
-		//----- input layer cnn
-		string filePath = input + "conv2d.csv";
-		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-		//readWeightFromFile(convFirstLayerWeights, filePath);
-
-
-		//----- 2. layer cnn
-		filePath = input + "conv2d_1.csv";
-		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
-		//readWeightFromFile(convHiddenLayerWeights_1, filePath);
-
-		//----- 1. batch norm
-		filePath = input + "batch_normalization.csv";
-		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
-		//readWeightFromFile(batchNormWeight, filePath);
-
-		//----- 2. batch norm
-		filePath = input + "batch_normalization_1.csv";
-		batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
-		//readWeightFromFile(batchNormWeight_1, filePath);
-
-		//----- 3. batch norm
-		filePath = input + "batch_normalization_2.csv";
-		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER * 4];
-		//readWeightFromFile(batchNormWeight_2, filePath);
-
 
 		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
 		int sizeW = IMAGE_WIDTH;
 		int sizeH = IMAGE_HEIGHT;
 
-
 		float* fResult = new float[size];
-
 
 		clock_t tStart = clock();
 		//1. cnn layer
-		fResult = conv1(ferImages, convFirstLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
+		fResult = conv1(ferImages, convInputLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
 		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
 		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 2, 2);
-		size = sizeW * sizeH * MASK_COUNT_FIRST_LAYER; // geçici
+		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, MAX_POOL, MAX_POOL_STRIDE);
 
+		saveFeatureBMP(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 1);
 
 		//2.cnn layer
-		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_HIDDEN_LAYER_1];
-		fHiddenResult = convHidden(fResult, convHiddenLayerWeights_1, sizeW, sizeH, MASK_SIZE, MASK_COUNT_HIDDEN_LAYER_1, MASK_COUNT_FIRST_LAYER);
-		size = sizeW * sizeH * MASK_COUNT_HIDDEN_LAYER_1;
+		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_OUTPUT_LAYER];
+		fHiddenResult = convHidden(fResult, convOutputLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_OUTPUT_LAYER, MASK_COUNT_FIRST_LAYER);
+		size = sizeW * sizeH * MASK_COUNT_OUTPUT_LAYER;
 
+		saveFeatureBMP(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER, 2);
 
-
-
-
-		//int max = 0;
-		//int min = 0;
-		//float ratio = 0.0;
-		BYTE* result = new BYTE[size];
-
-		int sizeTW = sizeW;
-		int sizeHW = sizeH;
-		//for (int m = 0; m < 6; m++) {
-		//	for (int i = 0; i < sizeW * sizeH; i++) {
-		//		if ((int)fHiddenResult[(m * sizeW * sizeH) + i] > max) {
-		//			max = fHiddenResult[(m * sizeW * sizeH) + i];
-		//		}
-		//		if ((int)fHiddenResult[(m * sizeW * sizeH) + i] < min) {
-		//			min = fHiddenResult[(m * sizeW * sizeH) + i];
-		//		}
-		//	}
-		//	for (int i = 0; i < sizeW * sizeH; i++) {
-		//		fHiddenResult[(m * sizeW * sizeH) + i] = fHiddenResult[(m * sizeW * sizeH) + i] - (min);
-		//	}
-		//	ratio = (float)(max - min) / 255;
-
-		//	for (int i = 0; i < sizeW * sizeH; i++) {
-		//		result[(m * sizeW * sizeH) + i] = fHiddenResult[(m * sizeW * sizeH) + i] / ratio;
-		//	}
-		//}
-
-
-
-		batchNormalizationConv(fHiddenResult, batchNormWeight_1, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
-		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
-		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1, 2, 2);
+		batchNormalizationConv(fHiddenResult, batchNormWeight_1, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER);
+		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER);
+		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER, MAX_POOL, MAX_POOL_STRIDE);
 
 
 		//----- FullyConnected Layer 1
-		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_HIDDEN_LAYER_1);
-		int sizeTemp = MASK_COUNT_HIDDEN_LAYER_1 * sizeW * sizeH;
-		float* denseResult = new float[DENSE_HIDDEN_LAYER];
-		filePath = input + "dense.csv";
-		denseWeights = new float[sizeTemp * DENSE_HIDDEN_LAYER + DENSE_HIDDEN_LAYER];
-		//readWeightFromFile(denseWeights, filePath);
-		
-
-		
-
-		denseResult = dense(fHiddenResult, denseWeights, sizeTemp, DENSE_HIDDEN_LAYER);
+		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER);
+		int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
+		float* denseResult = new float[DENSE_HIDDEN_LAYER_1];
+		denseResult = dense(fHiddenResult, denseHiddenLayerWeights_1, sizeTemp, DENSE_HIDDEN_LAYER_1);
+		batchNormalizationDense(denseResult, batchNormWeight_2, DENSE_HIDDEN_LAYER_1);
+		reLU(denseResult, DENSE_HIDDEN_LAYER_1, 1, 1);
 
 
-
-
-		batchNormalizationDense(denseResult, batchNormWeight_2, DENSE_HIDDEN_LAYER);
-		reLU(denseResult, DENSE_HIDDEN_LAYER, 1, 1);
 
 		//----- FullyConnected Layer 2
-		filePath = input + "dense_1.csv";
-		denseHiddenLayerWeights_1 = new float[7 * DENSE_HIDDEN_LAYER + 7];
-		readWeightFromFile(denseHiddenLayerWeights_1, filePath);
-		denseResult = dense(denseResult, denseHiddenLayerWeights_1, DENSE_HIDDEN_LAYER, 7);
+		denseResult = dense(denseResult, denseOutputLayerWeights, DENSE_HIDDEN_LAYER_1, DENSE_OUTPUT_LAYER);
 
+		
+		
+
+		softmax(denseResult, DENSE_OUTPUT_LAYER);
 		double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 		richTextBox1->Text += "cpu clock time: " + cpuClock + " \n";
-
-
-		softmax(denseResult, 7);
 
 		string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
 
@@ -742,90 +726,10 @@ namespace EmotionClassification {
 			chart1->Series["Duygular"]->Points->AddXY(str, denseResult[i]);
 		}
 
-
-
-		
-
-
-		/*for (int i = 0; i < MASK_COUNT_FIRST_LAYER; i++) {
-			richTextBox1->Text += "[ ";
-			for (int row = 0; row < sizeH; row++) {
-				for (int col = 0; col < sizeW; col++) {
-					richTextBox1->Text += fHiddenResult[i * sizeW * sizeH + row * sizeW + col] + " ";
-				}
-				richTextBox1->Text += "\n";
-			}
-			richTextBox1->Text += " ] \n";
-		}*/
-
-
-
-
-
-
-
-
-
-
-		//BYTE* result = new BYTE[size];
-		//int tempo = 0;
-
-		//for (int i = 0; i < size; i++) {
-		//	fHiddenResult[i] = fHiddenResult[i] * 128;
-		//	tempo = (int)fHiddenResult[i];
-		//	if (tempo < 0)
-		//		result[i] = 0;
-
-		//	else if (tempo > 255)
-		//		result[i] = 255;
-
-		//	else
-		//		result[i] = tempo;
-		//}
-
-
-		//Bitmap^ surface = gcnew Bitmap(sizeTW, sizeHW);
-		//pictureBox2->Image = surface;
-
-		//Bitmap^ surface2 = gcnew Bitmap(sizeTW, sizeHW);
-		//pictureBox3->Image = surface2;
-
-		//Bitmap^ surface3 = gcnew Bitmap(sizeTW, sizeHW);
-		//pictureBox4->Image = surface3;
-
-		//Bitmap^ surface4 = gcnew Bitmap(sizeTW, sizeHW);
-		//pictureBox5->Image = surface4;
-
-
-		//Color c;
-
-
-		//for (int row = 0; row < sizeHW; row++)
-		//{
-
-		//	for (int column = 0; column < sizeTW; column++)
-		//	{
-		//		c = Color::FromArgb(result[row * sizeTW + column], result[row * sizeTW + column], result[row * sizeTW + column]);
-		//		surface->SetPixel(column, row, c);
-
-		//		c = Color::FromArgb(result[(sizeHW * sizeTW) + row * sizeTW + column], result[(sizeHW * sizeTW) + row * sizeTW + column], result[(sizeHW * sizeTW) + row * sizeTW + column]);
-		//		surface2->SetPixel(column, row, c);
-
-		//		c = Color::FromArgb(result[(sizeHW * sizeTW * 2) + row * sizeTW + column], result[(sizeHW * sizeTW * 2) + row * sizeTW + column], result[(sizeHW * sizeTW * 2) + row * sizeTW + column]);
-		//		surface3->SetPixel(column, row, c);
-
-		//		c = Color::FromArgb(result[(sizeHW * sizeTW * 3) + row * sizeTW + column], result[(sizeHW * sizeTW * 3) + row * sizeTW + column], result[(sizeHW * sizeTW * 3) + row * sizeTW + column]);
-		//		surface4->SetPixel(column, row, c);
-		//	}
-		//}
-
-
-		delete[] result;
 		delete[] fResult;
 		delete[] fHiddenResult;
 
 	}
-
 	private: System::Void button2_Click(System::Object^ sender, System::EventArgs^ e) {
 		Int32 myInt = 0;
 
@@ -867,23 +771,6 @@ namespace EmotionClassification {
 	}
 
 	void setValuesForGpuConv1(CpuGpuMem* cg) {
-		//------ File Path
-		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
-		const char* inputStr = static_cast<const char*>(ip.ToPointer());
-		std::string input(inputStr);
-		//------ File Path
-
-		//----- read weights from file
-		string filePath = input + "conv2d.csv";
-		convFirstLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-		//readWeightFromFile(convFirstLayerWeights, filePath);
-
-		//----- 1. batch norm
-		filePath = input + "batch_normalization.csv";
-		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
-		//readWeightFromFile(batchNormWeight, filePath);
-
-
 		cg->imageHeightSize = IMAGE_HEIGHT;
 		cg->imageWidthSize = IMAGE_WIDTH;
 		cg->featureWidthSize = IMAGE_WIDTH - MASK_SIZE + 1; // no Padding
@@ -891,8 +778,8 @@ namespace EmotionClassification {
 		cg->maskWHSize = MASK_SIZE;
 		cg->maskCount = MASK_COUNT_FIRST_LAYER;
 		cg->maskDim = 1;
-		cg->pool = 2;
-		cg->stride = 2;
+		cg->pool = MAX_POOL;
+		cg->stride = MAX_POOL_STRIDE;
 		cg->batchWeightSize = cg->maskCount;
 
 		cpuGpuAlloc(cg, imageEnum, sizeof(int));
@@ -912,15 +799,14 @@ namespace EmotionClassification {
 			cg->cpuFeaturePtr[i] = 0.0;
 		}
 
-
 		for (int i = 0; i < MASK_SIZE * MASK_SIZE; i++) {
 			for (int j = 0; j < cg->maskCount; j++) {
-				cg->cpuMaskPtr[j * MASK_SIZE * MASK_SIZE + i] = convFirstLayerWeights[i * cg->maskCount + j];
+				cg->cpuMaskPtr[j * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[i * cg->maskCount + j];
 			}
 		}
 
 		for (int i = 0; i < cg->maskCount; i++) {
-			cg->cpuMaskPtr[cg->maskCount * MASK_SIZE * MASK_SIZE + i] = convFirstLayerWeights[cg->maskCount * MASK_SIZE * MASK_SIZE + i];
+			cg->cpuMaskPtr[cg->maskCount * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[cg->maskCount * MASK_SIZE * MASK_SIZE + i];
 		}
 
 
@@ -928,39 +814,22 @@ namespace EmotionClassification {
 
 	}
 
-	void setValuesForGpuConvHidden(CpuGpuMem* cg) {
-
-		//------ File Path
-		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
-		const char* inputStr = static_cast<const char*>(ip.ToPointer());
-		std::string input(inputStr);
-		//------ File Path
-
-		//----- 2. layer cnn
-		string filePath = input + "conv2d_1.csv";
-		convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
-		//readWeightFromFile(convHiddenLayerWeights_1, filePath);
-
-		//----- 2. batch norm
-		free(batchNormWeight);
-		filePath = input + "batch_normalization_1.csv";
-		batchNormWeight = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
-		//readWeightFromFile(batchNormWeight, filePath);
-
-
+	void setValuesForGpuConv2(CpuGpuMem* cg) {
 		cg->maskWHSize = MASK_SIZE;
-		cg->maskCount = MASK_COUNT_HIDDEN_LAYER_1;
+		cg->maskCount = MASK_COUNT_OUTPUT_LAYER;
 		cg->maskDim = MASK_COUNT_FIRST_LAYER;
 		cg->batchWeightSize = cg->maskCount;
 
 		cpuGpuFree(cg,imageEnum);
 		cpuGpuFree(cg,maskEnum);
 		cpuGpuFree(cg,batchEnum);
+
 		cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  mask allocation for 2. conv layer
 		cpuGpuAlloc(cg, batchEnum, sizeof(float));
 
+
 		for (int i = 0; i < cg->maskCount * 4; i++)
-			cg->cpuBatchPtr[i] = batchNormWeight[i];
+			cg->cpuBatchPtr[i] = batchNormWeight_1[i];
 
 
 		//weights resorting
@@ -968,7 +837,7 @@ namespace EmotionClassification {
 		for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
 			for (int j = 0; j < cg->maskDim; j++) {
 				for (int k = 0; k < cg->maskCount; k++) {
-					cg->cpuMaskPtr[k * cg->maskWHSize * cg->maskWHSize * cg->maskDim + (j * cg->maskWHSize * cg->maskWHSize) + i] = convHiddenLayerWeights_1[count];
+					cg->cpuMaskPtr[k * cg->maskWHSize * cg->maskWHSize * cg->maskDim + (j * cg->maskWHSize * cg->maskWHSize) + i] = convOutputLayerWeights[count];
 					count++;
 				}
 			}
@@ -977,80 +846,41 @@ namespace EmotionClassification {
 		for (int i = 0; i < cg->maskCount; i++)
 		{
 			cg->cpuMaskPtr[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i] =
-				convHiddenLayerWeights_1[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
+				convOutputLayerWeights[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
 		}
-
-
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
 	}
 
-	void setValuesForGpuDense(CpuGpuMem* cg) {
-		//------ File Path
-		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
-		const char* inputStr = static_cast<const char*>(ip.ToPointer());
-		std::string input(inputStr);
-		//------ File Path
-		
-
-		//----- 3. batch norm
-		free(batchNormWeight);
-		string filePath = input + "batch_normalization_2.csv";
-		batchNormWeight = new float[DENSE_HIDDEN_LAYER * 4];
-		//readWeightFromFile(batchNormWeight, filePath);
+	void setValuesForGpuDense1(CpuGpuMem* cg) {
 
 		cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;
-		cg->denseOutputSize = DENSE_HIDDEN_LAYER;
-
-		//------ dense
-		filePath = input + "dense.csv";
-		denseWeights = new float[cg->denseInputSize * cg->denseOutputSize + cg->denseOutputSize];
-		//readWeightFromFile(denseWeights, filePath);
-
-	
+		cg->denseOutputSize = DENSE_HIDDEN_LAYER_1;
 
 		cpuGpuAlloc(cg, denseEnum, sizeof(float));
 		cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
-
+		cpuGpuFree(cg,featureEnum);
 		cpuGpuFree(cg,maskEnum);
-
 		cpuGpuFree(cg,batchEnum);
 		cg->batchWeightSize = cg->denseOutputSize;
 		cpuGpuAlloc(cg, batchEnum, sizeof(float));
 
 		cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize);
 
-		//for (int i = 0; i < cg->denseOutputSize * 4; i++)
-		//	cg->cpuBatchPtr[i] = batchNormWeight[i];
-
-		/*for (int i = 0; i < (cg->denseWeightAllocSize / sizeof(float)); i++) {
-			cg->cpuDenseWeightPtr[i] = denseWeights[i];
-		}*/
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, cg->cpuDenseWeightPtr, cg->denseWeightAllocSize);
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight, cg->batchWeightSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_2, cg->batchWeightSize);
 	}
 
 	void setValuesForGpuDense2(CpuGpuMem* cg) {
-		//------ File Path
-		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
-		const char* inputStr = static_cast<const char*>(ip.ToPointer());
-		std::string input(inputStr);
-		//------ File Path
 
-		cg->denseInputSize = DENSE_HIDDEN_LAYER;
-		cg->denseOutputSize = EMOTION_COUNT;
-
-		free(denseWeights);
-		//----- FullyConnected Layer 2
-		string filePath = input + "dense_1.csv";
-		denseWeights = new float[EMOTION_COUNT * DENSE_HIDDEN_LAYER + EMOTION_COUNT];
-		//readWeightFromFile(denseWeights, filePath);
+		cg->denseInputSize = DENSE_HIDDEN_LAYER_1;
+		cg->denseOutputSize = DENSE_OUTPUT_LAYER;
 
 		cpuGpuFree(cg,batchEnum);
 		cpuGpuFree(cg,denseWeightEnum);
-
 		cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
 
-
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseWeights, cg->denseWeightAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseOutputLayerWeights, cg->denseWeightAllocSize);
 	}
 
 
@@ -1091,22 +921,27 @@ namespace EmotionClassification {
 			conv1ExecGPU(cg); //conv1
 
 			//---------conv2
-			setValuesForGpuConvHidden(cg); // conv2
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+			setValuesForGpuConv2(cg); // conv2
+
 
 			convHidden1ExecGPU(cg);
 
 			//---------Dense1
-			setValuesForGpuDense(cg);
-
+			setValuesForGpuDense1(cg);
 			dense1ExecGPU(cg);
+
+			//richTextBox1->Text = "";
+			//for (int i = 0; i < 128; i++) {
+			//	richTextBox1->Text += cg->cpuDensePtr[i] + "\n";
+			//}
 
 			//---------Dense2
 			setValuesForGpuDense2(cg);
 			dense2ExecGPU(cg);
 
-			softmax(cg->cpuDensePtr, 7);
+
+
+			softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
 
 
 			double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
@@ -1131,8 +966,10 @@ namespace EmotionClassification {
 		{
 			CpuGpuMem* cg = &cgs[i];
 
+			cpuGpuFree(cg, denseEnum);
+			cpuGpuFree(cg, denseWeightEnum);
 			//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
-			cpuGpuFree(cg, featureEnum);
+
 			cudaError_t result = cudaStreamDestroy(cg->stream);
 			assert(result == cudaSuccess);
 		}
@@ -1148,9 +985,9 @@ namespace EmotionClassification {
 		free(emotionLabel);
 		free(bmpColoredImage);
 		free(raw_intensity);
-		free(convFirstLayerWeights);
-		free(convHiddenLayerWeights_1);
-		free(denseWeights);
+		free(convInputLayerWeights);
+		free(convOutputLayerWeights);
+		free(denseOutputLayerWeights);
 		free(denseHiddenLayerWeights_1);
 		free(batchNormWeight);
 		free(batchNormWeight_1);
@@ -1158,5 +995,7 @@ namespace EmotionClassification {
 	}
 
 
+private: System::Void MyForm_Load(System::Object^ sender, System::EventArgs^ e) {
+}
 };
 }

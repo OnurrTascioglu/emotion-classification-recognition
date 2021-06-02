@@ -202,7 +202,7 @@ BYTE* ConvertIntensityToBMP(BYTE* Buffer, int width, int height, long* newsize)
 } //ConvertIntensityToBMP
 
 
-void readWeightFromFile(float* convWeight, string filePath) {
+bool readWeightFromFile(float* convWeight, string filePath) {
 
 	int index = 0;
 
@@ -210,6 +210,8 @@ void readWeightFromFile(float* convWeight, string filePath) {
 	fstream fin;
 
 	fin.open(filePath, ios::in);
+	if (!fin.good()) return 1;
+
 	string line;
 
 	while (!fin.eof()) {
@@ -221,4 +223,5 @@ void readWeightFromFile(float* convWeight, string filePath) {
 	}
 	fin.close();
 
+	return 0;
 }

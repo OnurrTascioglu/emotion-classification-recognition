@@ -208,17 +208,16 @@ void dense1ExecGPU(CpuGpuMem* cg)
 
 	flattenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuTempLayer2, fws, fhs, mc);
 
-	threadCount = cg->denseOutputSize / sizeof(float);
+	threadCount = cg->denseOutputSize;
 	gridDim = (threadCount + blockDim - 1) / blockDim;
 
 	//clock_t tStart = clock();
 	//double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
-	cudaDeviceSynchronize();
 	denseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer2, cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
-	
-	
+
 	batchAndReLuDenseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuDensePtr, cg->gpuBatchPtr, cg->denseOutputSize);
 
+	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuDensePtr, cg->gpuDensePtr, cg->denseOutputSize * sizeof(float));
 }
 
 
@@ -266,6 +265,8 @@ void convHidden1ExecGPU(CpuGpuMem* cg)
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;
 
+
+	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuTempLayer, 10*10*6*4);
 }
 
 
