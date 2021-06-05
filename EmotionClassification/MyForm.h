@@ -28,22 +28,13 @@
 #define TOTAL_IMAGE 82
 #define MASK_SIZE 3
 
-#define MASK_COUNT_FIRST_LAYER 64
-#define MASK_COUNT_HIDDEN_LAYER_1
-#define MASK_COUNT_HIDDEN_LAYER_2 
-#define MASK_COUNT_HIDDEN_LAYER_3 
-#define MASK_COUNT_OUTPUT_LAYER 32 //output from conv layer = dense input layer
-
-#define DENSE_HIDDEN_LAYER_1 128
-#define DENSE_OUTPUT_LAYER 7
-
 #define MAX_POOL 2
 #define MAX_POOL_STRIDE 2
+#define FACE_DETECTION_SCALE 200 
+#define DENSE_OUTPUT_LAYER 7
 
-#define WEIGHT_PATH "D:\\Ders\\bitirme\\agirlikler2\\"
 #define FEATURE_RESULT_PATH "D:\\Ders\\bitirme\\features\\"
-
-
+#define HAAR_CASCADE_PATH "C:\\Program Files\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_default.xml"
 
 
 namespace EmotionClassification {
@@ -73,23 +64,42 @@ namespace EmotionClassification {
 		int lineCount = 0;
 		BYTE* emotionLabel;
 		BYTE* raw_intensity;
-		bool webcam = 0;
 		bool gpuRuntimeBool = 1;
+		bool uploadWeights = 0;
+		bool openCamera = 0;
+		bool freeFerImage = 0;
 
 		//statik
 		float* convInputLayerWeights;
 		float* convHiddenLayerWeights_1;
+		float* convHiddenLayerWeights_2;
 		float* convOutputLayerWeights;
 
 		float* denseHiddenLayerWeights_1;
+		float* denseHiddenLayerWeights_2;
 		float* denseOutputLayerWeights;
+
 		float* batchNormWeight;
 		float* batchNormWeight_1;
 		float* batchNormWeight_2;
+		float* batchNormWeight_3;
+		float* batchNormWeight_4;
+		float* batchNormWeight_5;
 
 		int ferTextBoxInput = 0;
 		int pictureBox3Click = 0;
 		int pictureBox4Click = 0;
+
+		int MASK_COUNT_FIRST_LAYER = 0;
+		int MASK_COUNT_HIDDEN_LAYER_1 = 0;
+		int MASK_COUNT_HIDDEN_LAYER_2 = 0;
+		int MASK_COUNT_OUTPUT_LAYER = 0; //output from conv layer = dense input layer
+		int DENSE_HIDDEN_LAYER_1 = 0;
+		int DENSE_HIDDEN_LAYER_2 = 0;
+
+
+		System::String^ WEIGHT_PATH = "D:\\Ders\\bitirme\\agirliklar4\\";
+
 
 	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
 	private: System::Windows::Forms::TextBox^ textBox1;
@@ -111,6 +121,9 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::ToolStripMenuItem^ conv1FeaturesToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ conv2FeaturesToolStripMenuItem;
 	private: System::Windows::Forms::Label^ label2;
+	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::ToolStripMenuItem^ cudaRunModel2ToolStripMenuItem;
 	private: System::Windows::Forms::Button^ button1;
 
 
@@ -170,6 +183,7 @@ namespace EmotionClassification {
 			this->testToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->runToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->cudaRunToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->cudaRunModel2ToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->displayToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->conv1FeaturesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->conv2FeaturesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -186,6 +200,8 @@ namespace EmotionClassification {
 			this->pictureBox4 = (gcnew System::Windows::Forms::PictureBox());
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->label2 = (gcnew System::Windows::Forms::Label());
+			this->label3 = (gcnew System::Windows::Forms::Label());
+			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->BeginInit();
@@ -247,27 +263,35 @@ namespace EmotionClassification {
 			// 
 			// testToolStripMenuItem
 			// 
-			this->testToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+			this->testToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
 				this->runToolStripMenuItem,
-					this->cudaRunToolStripMenuItem
+					this->cudaRunToolStripMenuItem, this->cudaRunModel2ToolStripMenuItem
 			});
 			this->testToolStripMenuItem->Name = L"testToolStripMenuItem";
 			this->testToolStripMenuItem->Size = System::Drawing::Size(49, 24);
 			this->testToolStripMenuItem->Text = L"Test";
+			this->testToolStripMenuItem->Visible = false;
 			// 
 			// runToolStripMenuItem
 			// 
 			this->runToolStripMenuItem->Name = L"runToolStripMenuItem";
-			this->runToolStripMenuItem->Size = System::Drawing::Size(151, 26);
+			this->runToolStripMenuItem->Size = System::Drawing::Size(224, 26);
 			this->runToolStripMenuItem->Text = L"Run";
 			this->runToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::runToolStripMenuItem_Click);
 			// 
 			// cudaRunToolStripMenuItem
 			// 
 			this->cudaRunToolStripMenuItem->Name = L"cudaRunToolStripMenuItem";
-			this->cudaRunToolStripMenuItem->Size = System::Drawing::Size(151, 26);
-			this->cudaRunToolStripMenuItem->Text = L"CudaRun";
+			this->cudaRunToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->cudaRunToolStripMenuItem->Text = L"CudaRunModel1";
 			this->cudaRunToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::cudaRunToolStripMenuItem_Click);
+			// 
+			// cudaRunModel2ToolStripMenuItem
+			// 
+			this->cudaRunModel2ToolStripMenuItem->Name = L"cudaRunModel2ToolStripMenuItem";
+			this->cudaRunModel2ToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->cudaRunModel2ToolStripMenuItem->Text = L"CudaRunModel2";
+			this->cudaRunModel2ToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::cudaRunModel2ToolStripMenuItem_Click);
 			// 
 			// displayToolStripMenuItem
 			// 
@@ -282,14 +306,14 @@ namespace EmotionClassification {
 			// conv1FeaturesToolStripMenuItem
 			// 
 			this->conv1FeaturesToolStripMenuItem->Name = L"conv1FeaturesToolStripMenuItem";
-			this->conv1FeaturesToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->conv1FeaturesToolStripMenuItem->Size = System::Drawing::Size(192, 26);
 			this->conv1FeaturesToolStripMenuItem->Text = L"Conv1 Features";
 			this->conv1FeaturesToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::conv1FeaturesToolStripMenuItem_Click);
 			// 
 			// conv2FeaturesToolStripMenuItem
 			// 
 			this->conv2FeaturesToolStripMenuItem->Name = L"conv2FeaturesToolStripMenuItem";
-			this->conv2FeaturesToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->conv2FeaturesToolStripMenuItem->Size = System::Drawing::Size(192, 26);
 			this->conv2FeaturesToolStripMenuItem->Text = L"Conv2 Features";
 			this->conv2FeaturesToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::conv2FeaturesToolStripMenuItem_Click);
 			// 
@@ -299,11 +323,12 @@ namespace EmotionClassification {
 			// 
 			// richTextBox1
 			// 
-			this->richTextBox1->Location = System::Drawing::Point(12, 385);
+			this->richTextBox1->Location = System::Drawing::Point(12, 407);
 			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(496, 176);
+			this->richTextBox1->Size = System::Drawing::Size(496, 154);
 			this->richTextBox1->TabIndex = 1;
 			this->richTextBox1->Text = L"";
+			this->richTextBox1->TextChanged += gcnew System::EventHandler(this, &MyForm::richTextBox1_TextChanged);
 			// 
 			// pictureBox1
 			// 
@@ -390,6 +415,7 @@ namespace EmotionClassification {
 			this->pictureBox3->TabStop = false;
 			this->pictureBox3->Visible = false;
 			this->pictureBox3->Click += gcnew System::EventHandler(this, &MyForm::pictureBox3_Click);
+			this->pictureBox3->DoubleClick += gcnew System::EventHandler(this, &MyForm::pictureBox3_DoubleClick);
 			// 
 			// pictureBox4
 			// 
@@ -401,6 +427,7 @@ namespace EmotionClassification {
 			this->pictureBox4->TabStop = false;
 			this->pictureBox4->Visible = false;
 			this->pictureBox4->Click += gcnew System::EventHandler(this, &MyForm::pictureBox4_Click);
+			this->pictureBox4->DoubleClick += gcnew System::EventHandler(this, &MyForm::pictureBox4_DoubleClick);
 			// 
 			// label1
 			// 
@@ -422,11 +449,29 @@ namespace EmotionClassification {
 			this->label2->Text = L"Conv2";
 			this->label2->Visible = false;
 			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(12, 382);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(0, 17);
+			this->label3->TabIndex = 17;
+			// 
+			// label4
+			// 
+			this->label4->AutoSize = true;
+			this->label4->Location = System::Drawing::Point(569, 228);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(0, 17);
+			this->label4->TabIndex = 18;
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1451, 592);
+			this->Controls->Add(this->label4);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->label2);
 			this->Controls->Add(this->label1);
 			this->Controls->Add(this->pictureBox4);
@@ -444,7 +489,7 @@ namespace EmotionClassification {
 			this->Name = L"MyForm";
 			this->Text = L"MyForm";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MyForm::MyForm_FormClosing);
-			this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
+			this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &MyForm::MyForm_FormClosed);
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
@@ -480,6 +525,7 @@ namespace EmotionClassification {
 		//		mystream->Close();
 		//	}
 		//}
+		uploadWeights = 1;
 		int error = 0;
 		int success = 0;
 
@@ -491,66 +537,248 @@ namespace EmotionClassification {
 		std::string input(inputStr);
 		//------ File Path
 
-		//----- input layer cnn
-		string filePath = input + "conv2d.csv";
-		convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-		if (readWeightFromFile(convInputLayerWeights, filePath)) error++;
-		else success++;
-
-		int sizeW = IMAGE_WIDTH - MASK_SIZE + 1;
-		int sizeH = IMAGE_HEIGHT - MASK_SIZE + 1;
-		sizeW = sizeW / MAX_POOL_STRIDE;
-		sizeH = sizeH / MAX_POOL_STRIDE;
-
-		//----- 2. layer cnn
-		filePath = input + "conv2d_1.csv";
-		convOutputLayerWeights = new float[MASK_COUNT_OUTPUT_LAYER * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_OUTPUT_LAYER];
-		if (readWeightFromFile(convOutputLayerWeights, filePath)) error++;
-		else success++;
 
 
-		sizeW = sizeW - MASK_SIZE + 1;
-		sizeH = sizeH - MASK_SIZE + 1;
-		sizeW = sizeW / MAX_POOL_STRIDE;
-		sizeH = sizeH / MAX_POOL_STRIDE;
+
+		// File pointer
+		string filePath = input + "model.txt";
+		fstream fin;
+		fin.open(filePath, ios::in);
+		if (!fin.good()) error++;
+
+		string line;
+		string model;
+
+		std::getline(fin, line);
+		model = line;
+		if (model == "model1") {
+
+			std::getline(fin, line);
+			MASK_COUNT_FIRST_LAYER = stoi(line);
+			std::getline(fin, line);
+			MASK_COUNT_OUTPUT_LAYER = stoi(line);
+			std::getline(fin, line);
+			DENSE_HIDDEN_LAYER_1 = stoi(line);
+			richTextBox1->Text += "Model 1" + "\n";
+			richTextBox1->Text += "Conv1 :" + MASK_COUNT_FIRST_LAYER + "\n";
+			richTextBox1->Text += "Conv2 :" + MASK_COUNT_OUTPUT_LAYER + "\n";
+			richTextBox1->Text += "FullyC1 :" + DENSE_HIDDEN_LAYER_1 + "\n";
+		}
+		else if (model == "model2") {
+			std::getline(fin, line);
+			MASK_COUNT_FIRST_LAYER = stoi(line);
+			std::getline(fin, line);
+			MASK_COUNT_HIDDEN_LAYER_1 = stoi(line);
+			std::getline(fin, line);
+			MASK_COUNT_HIDDEN_LAYER_2 = stoi(line);
+			std::getline(fin, line);
+			MASK_COUNT_OUTPUT_LAYER = stoi(line);
+			std::getline(fin, line);
+			DENSE_HIDDEN_LAYER_1 = stoi(line);
+			std::getline(fin, line);
+			DENSE_HIDDEN_LAYER_2 = stoi(line);
+			richTextBox1->Text += "Model 2" + "\n";
+			richTextBox1->Text += "Conv1 :" + MASK_COUNT_FIRST_LAYER + "\n";
+			richTextBox1->Text += "Conv2 :" + MASK_COUNT_HIDDEN_LAYER_1 + "\n";
+			richTextBox1->Text += "Conv3 :" + MASK_COUNT_HIDDEN_LAYER_2 + "\n";
+			richTextBox1->Text += "Conv4 :" + MASK_COUNT_OUTPUT_LAYER + "\n";
+			richTextBox1->Text += "FullyC1 :" + DENSE_HIDDEN_LAYER_1 + "\n";
+			richTextBox1->Text += "FullyC2 :" + DENSE_HIDDEN_LAYER_2 + "\n";
+		}
+		else {
+			MessageBox::Show("TXT file's content is not correct.");
+		}
+		fin.close();
+
+		if (model == "model1") {
+
+			//----- input layer cnn
+			filePath = input + "conv2d.csv";
+			delete[] convInputLayerWeights;
+			convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
+			if (readWeightFromFile(convInputLayerWeights, filePath)) error++;
+			else success++;
+
+			int sizeW = IMAGE_WIDTH - MASK_SIZE + 1;
+			int sizeH = IMAGE_HEIGHT - MASK_SIZE + 1;
+			sizeW = sizeW / MAX_POOL_STRIDE;
+			sizeH = sizeH / MAX_POOL_STRIDE;
+
+			//----- 2. layer cnn
+			filePath = input + "conv2d_1.csv";
+			delete[] convOutputLayerWeights;
+			convOutputLayerWeights = new float[MASK_COUNT_OUTPUT_LAYER * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_OUTPUT_LAYER];
+			if (readWeightFromFile(convOutputLayerWeights, filePath)) error++;
+			else success++;
 
 
-		//----- FullyConnected Layer 1
-		int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
-		float* denseResult = new float[DENSE_HIDDEN_LAYER_1];
-		filePath = input + "dense.csv";
-		denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER_1 + DENSE_HIDDEN_LAYER_1];
-		if (readWeightFromFile(denseHiddenLayerWeights_1, filePath)) error++;
-		else success++;
-
-		//----- FullyConnected Layer 2
-		filePath = input + "dense_1.csv";
-		denseOutputLayerWeights = new float[DENSE_OUTPUT_LAYER * DENSE_HIDDEN_LAYER_1 + DENSE_OUTPUT_LAYER];
-		if (readWeightFromFile(denseOutputLayerWeights, filePath)) error++;
-		else success++;
-
-		//----- 1. batch norm
-		filePath = input + "batch_normalization.csv";
-		batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
-		if (readWeightFromFile(batchNormWeight, filePath)) error++;
-		else success++;
-
-		//----- 2. batch norm
-		filePath = input + "batch_normalization_1.csv";
-		batchNormWeight_1 = new float[MASK_COUNT_OUTPUT_LAYER * 4];
-		if (readWeightFromFile(batchNormWeight_1, filePath)) error++;
-		else success++;
-
-		//----- 3. batch norm
-		filePath = input + "batch_normalization_2.csv";
-		batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER_1 * 4];
-		if (readWeightFromFile(batchNormWeight_2, filePath)) error++;
-		else success++;
+			sizeW = sizeW - MASK_SIZE + 1;
+			sizeH = sizeH - MASK_SIZE + 1;
+			sizeW = sizeW / MAX_POOL_STRIDE;
+			sizeH = sizeH / MAX_POOL_STRIDE;
 
 
-		MessageBox::Show(success + " File Successfully Loaded " + "\n" + error + " File Unsuccessfully Loaded ");
-		button1->Enabled = true;
-		button2->Enabled = true;
+			//----- FullyConnected Layer 1
+
+			int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
+			filePath = input + "dense.csv";
+			delete[] denseHiddenLayerWeights_1;
+			denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER_1 + DENSE_HIDDEN_LAYER_1];
+			if (readWeightFromFile(denseHiddenLayerWeights_1, filePath)) error++;
+			else success++;
+
+			//----- FullyConnected Layer 2
+			filePath = input + "dense_1.csv";
+			delete[] denseOutputLayerWeights;
+			denseOutputLayerWeights = new float[DENSE_OUTPUT_LAYER * DENSE_HIDDEN_LAYER_1 + DENSE_OUTPUT_LAYER];
+			if (readWeightFromFile(denseOutputLayerWeights, filePath)) error++;
+			else success++;
+
+			//----- 1. batch norm
+			filePath = input + "batch_normalization.csv";
+			delete[] batchNormWeight;
+			batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
+			if (readWeightFromFile(batchNormWeight, filePath)) error++;
+			else success++;
+
+			//----- 2. batch norm
+			filePath = input + "batch_normalization_1.csv";
+			delete[] batchNormWeight_1;
+			batchNormWeight_1 = new float[MASK_COUNT_OUTPUT_LAYER * 4];
+			if (readWeightFromFile(batchNormWeight_1, filePath)) error++;
+			else success++;
+
+			//----- 3. batch norm
+			filePath = input + "batch_normalization_2.csv";
+			delete[] batchNormWeight_2;
+			batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER_1 * 4];
+			if (readWeightFromFile(batchNormWeight_2, filePath)) error++;
+			else success++;
+
+
+			MessageBox::Show(success + " File Successfully Loaded " + "\n" + error + " File Unsuccessfully Loaded ");
+			button1->Enabled = true;
+			button2->Enabled = true;
+		}
+
+		else if (model == "model2") {
+
+			//----- input layer cnn
+			filePath = input + "conv2d.csv";
+			delete[] convInputLayerWeights;
+			convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
+			if (readWeightFromFile(convInputLayerWeights, filePath)) error++;
+			else success++;
+
+			int sizeW = IMAGE_WIDTH - MASK_SIZE + 1;
+			int sizeH = IMAGE_HEIGHT - MASK_SIZE + 1;
+			sizeW = sizeW / MAX_POOL_STRIDE;
+			sizeH = sizeH / MAX_POOL_STRIDE;
+
+			//----- 2. layer cnn
+			filePath = input + "conv2d_1.csv";
+			delete[] convHiddenLayerWeights_1;
+			convHiddenLayerWeights_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_1];
+			if (readWeightFromFile(convHiddenLayerWeights_1, filePath)) error++;
+			else success++;
+
+			sizeW = sizeW - MASK_SIZE + 1;
+			sizeH = sizeH - MASK_SIZE + 1;
+
+			//----- 3. layer cnn
+			filePath = input + "conv2d_2.csv";
+			delete[] convHiddenLayerWeights_2;
+			convHiddenLayerWeights_2 = new float[MASK_COUNT_HIDDEN_LAYER_2 * MASK_COUNT_HIDDEN_LAYER_1 * MASK_SIZE * MASK_SIZE + MASK_COUNT_HIDDEN_LAYER_2];
+			if (readWeightFromFile(convHiddenLayerWeights_2, filePath)) error++;
+			else success++;
+
+			sizeW = sizeW - MASK_SIZE + 1;
+			sizeH = sizeH - MASK_SIZE + 1;
+			sizeW = sizeW / MAX_POOL_STRIDE;
+			sizeH = sizeH / MAX_POOL_STRIDE;
+
+			//----- 4. layer cnn
+			filePath = input + "conv2d_3.csv";
+			delete[] convOutputLayerWeights;
+			convOutputLayerWeights = new float[MASK_COUNT_OUTPUT_LAYER * MASK_COUNT_HIDDEN_LAYER_2 * MASK_SIZE * MASK_SIZE + MASK_COUNT_OUTPUT_LAYER];
+			if (readWeightFromFile(convOutputLayerWeights, filePath)) error++;
+			else success++;
+
+			sizeW = sizeW - MASK_SIZE + 1;
+			sizeH = sizeH - MASK_SIZE + 1;
+
+			//--------------------------------------------------------------
+			//----- FullyConnected Layer 1
+
+			int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
+			filePath = input + "dense.csv";
+			delete[] denseHiddenLayerWeights_1;
+			denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER_1 + DENSE_HIDDEN_LAYER_1];
+			if (readWeightFromFile(denseHiddenLayerWeights_1, filePath)) error++;
+			else success++;
+
+			//----- FullyConnected Layer 2
+			filePath = input + "dense_1.csv";
+			delete[] denseHiddenLayerWeights_2;
+			denseHiddenLayerWeights_2 = new float[DENSE_HIDDEN_LAYER_1 * DENSE_HIDDEN_LAYER_2 + DENSE_HIDDEN_LAYER_2];
+			if (readWeightFromFile(denseHiddenLayerWeights_2, filePath)) error++;
+			else success++;
+
+			//----- FullyConnected Layer 3
+			filePath = input + "dense_2.csv";
+			delete[] denseOutputLayerWeights;
+			denseOutputLayerWeights = new float[DENSE_OUTPUT_LAYER * DENSE_HIDDEN_LAYER_2 + DENSE_OUTPUT_LAYER];
+			if (readWeightFromFile(denseOutputLayerWeights, filePath)) error++;
+			else success++;
+
+			//----- 1. batch norm
+			filePath = input + "batch_normalization.csv";
+			delete[] batchNormWeight;
+			batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
+			if (readWeightFromFile(batchNormWeight, filePath)) error++;
+			else success++;
+
+			//----- 2. batch norm
+			filePath = input + "batch_normalization_1.csv";
+			delete[] batchNormWeight_1;
+			batchNormWeight_1 = new float[MASK_COUNT_HIDDEN_LAYER_1 * 4];
+			if (readWeightFromFile(batchNormWeight_1, filePath)) error++;
+			else success++;
+
+			//----- 3. batch norm
+			filePath = input + "batch_normalization_2.csv";
+			delete[] batchNormWeight_2;
+			batchNormWeight_2 = new float[MASK_COUNT_HIDDEN_LAYER_2 * 4];
+			if (readWeightFromFile(batchNormWeight_2, filePath)) error++;
+			else success++;
+
+			//----- 4. batch norm
+			filePath = input + "batch_normalization_3.csv";
+			delete[] batchNormWeight_3;
+			batchNormWeight_3 = new float[MASK_COUNT_OUTPUT_LAYER * 4];
+			if (readWeightFromFile(batchNormWeight_3, filePath)) error++;
+			else success++;
+
+			//----- 5. batch norm
+			filePath = input + "batch_normalization_4.csv";
+			delete[] batchNormWeight_4;
+			batchNormWeight_4 = new float[DENSE_HIDDEN_LAYER_1 * 4];
+			if (readWeightFromFile(batchNormWeight_4, filePath)) error++;
+			else success++;
+
+			//----- 6. batch norm
+			filePath = input + "batch_normalization_5.csv";
+			delete[] batchNormWeight_5;
+			batchNormWeight_5 = new float[DENSE_HIDDEN_LAYER_2 * 4];
+			if (readWeightFromFile(batchNormWeight_5, filePath)) error++;
+			else success++;
+
+
+			MessageBox::Show(success + " File Successfully Loaded " + "\n" + error + " File Unsuccessfully Loaded ");
+			button1->Enabled = true;
+			button2->Enabled = true;
+		}
+
 	}
 	private: System::Void pictureToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		LPCTSTR input;
@@ -644,6 +872,7 @@ namespace EmotionClassification {
 
 		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
+			delete[] ferImages;
 			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT * TOTAL_IMAGE];
 			emotionLabel = new BYTE[TOTAL_IMAGE];
 
@@ -669,7 +898,7 @@ namespace EmotionClassification {
 				bool lineBool = 0;
 				int imageIndex = 0;
 				int ferIndex = 0;
-
+				lineCount = 0;
 
 				while (!fin.eof()) {
 
@@ -891,7 +1120,7 @@ namespace EmotionClassification {
 						surface->SetPixel(column, row, c);
 					}
 				}
-				cudaRunToolStripMenuItem_Click(sender, e);
+				cudaRunModel2ToolStripMenuItem_Click(sender, e);
 			}
 		}
 		else {
@@ -957,10 +1186,6 @@ namespace EmotionClassification {
 			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
 
 
-			   for (int i = 0; i < cg->maskCount * 4; i++)
-				   cg->cpuBatchPtr[i] = batchNormWeight_1[i];
-
-
 			   //weights resorting
 			   int count = 0;
 			   for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
@@ -978,7 +1203,7 @@ namespace EmotionClassification {
 					   convOutputLayerWeights[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
 			   }
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_1, cg->batchWeightSize);
 		   }
 
 		   void setValuesForGpuDense1(CpuGpuMem* cg) {
@@ -1012,20 +1237,20 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseOutputLayerWeights, cg->denseWeightAllocSize);
 		   }
 
-		   void showFeatureOnPictureBox(float* fResult, int sizeW, int sizeH, int featureCount, int pictureBoxIndex ,int indexM) {
+		   void showFeatureOnPictureBox(float* fResult, int sizeW, int sizeH, int featureCount, int pictureBoxIndex, int indexM) {
 			   LPCTSTR input;
 			   CString str;
-			   BYTE* buffer = new BYTE[sizeW * sizeH ];
+			   BYTE* buffer = new BYTE[sizeW * sizeH];
 			   long* a = new long;
 			   BYTE* buffer2;
 			   int max = 0;
 			   int min = 0;
 			   float ratio = 0.0;
-			   float* tempResult = new float[sizeH * sizeW ];
+			   float* tempResult = new float[sizeH * sizeW];
 			   if (indexM > featureCount) {
 				   indexM = 0;
 			   }
-			   
+
 
 
 			   for (int i = 0; i < sizeW * sizeH; i++) {
@@ -1065,6 +1290,47 @@ namespace EmotionClassification {
 
 		   }
 
+		   void printGraph(CpuGpuMem* cg, double gpuClock) {
+
+			   float max = 0.0, max2 = 0.0;
+			   int maxIndex = 0, max2Index = 0;
+			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+				   if (cg->cpuDensePtr[i] > max) {
+					   max = cg->cpuDensePtr[i];
+					   maxIndex = i;
+				   }
+			   }
+			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+				   if (cg->cpuDensePtr[i] > max2 && i != maxIndex) {
+					   max2 = cg->cpuDensePtr[i];
+					   max2Index = i;
+				   }
+			   }
+
+			   label4->Text = " ";
+			   if (maxIndex == 0 || max2Index == 0) {
+				   label4->Text += "Kýzgýn ";
+			   }
+			   if (maxIndex == 1 || max2Index == 1) {
+				   label4->Text += "Nefret ";
+			   }
+			   if (maxIndex == 2 || max2Index == 2) {
+				   label4->Text += "Korku ";
+			   }
+			   if (maxIndex == 3 || max2Index == 3) {
+				   label4->Text += "Mutlu ";
+			   }
+			   if (maxIndex == 4 || max2Index == 4) {
+				   label4->Text += "Üzgün ";
+			   }
+			   if (maxIndex == 5 || max2Index == 5) {
+				   label4->Text += "Þaþkýn ";
+			   }
+			   if (maxIndex == 6 || max2Index == 6) {
+				   label4->Text += "Doðal ";
+			   }
+		   }
+
 	private: System::Void cudaRunToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
 		clock_t tStart = clock();
@@ -1100,14 +1366,14 @@ namespace EmotionClassification {
 			//---------conv2
 			conv1ExecGPU(cg); //conv1
 
-			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0 , pictureBox3Click);
+			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
 
 			//---------conv2
 			setValuesForGpuConv2(cg); // conv2
 
 			convHidden1ExecGPU(cg);
 
-			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_OUTPUT_LAYER, 1 , pictureBox4Click);
+			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_OUTPUT_LAYER, 1, pictureBox4Click);
 
 			//---------Dense1
 			setValuesForGpuDense1(cg);
@@ -1122,14 +1388,12 @@ namespace EmotionClassification {
 			setValuesForGpuDense2(cg);
 			dense2ExecGPU(cg);
 
-
-
 			softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
 
+			double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 
-			double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
-			richTextBox1->Text += "gpu clock time: " + cpuClock + " \n";
 
+			label3->Text = "Gpu clock time: " + gpuClock + " \n";
 
 			string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
 
@@ -1138,6 +1402,8 @@ namespace EmotionClassification {
 				System::String^ str = gcnew System::String(emot[i].c_str());
 				chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
 			}
+
+			printGraph(cg, gpuClock);
 
 			cudaDeviceSynchronize();
 		}
@@ -1156,28 +1422,301 @@ namespace EmotionClassification {
 
 		cudaError_t result = cudaDeviceSynchronize();
 		assert(result == cudaSuccess);
+	}
+		   
+		   
+		   //---------------------------------------------------------------------------------
+		   //Model2---------------------------------------------------------------------------
 
+
+
+		   void setValuesForGpuModel2Conv1(CpuGpuMem* cg) {
+			   cg->imageHeightSize = IMAGE_HEIGHT;
+			   cg->imageWidthSize = IMAGE_WIDTH;
+			   cg->featureWidthSize = IMAGE_WIDTH - MASK_SIZE + 1; // no Padding
+			   cg->featureHeightSize = IMAGE_HEIGHT - MASK_SIZE + 1; // no Padding
+			   cg->maskWHSize = MASK_SIZE;
+			   cg->maskCount = MASK_COUNT_FIRST_LAYER;
+			   cg->maskDim = 1;
+			   cg->pool = MAX_POOL;
+			   cg->stride = MAX_POOL_STRIDE;
+			   cg->batchWeightSize = cg->maskCount;
+
+			   cpuGpuAlloc(cg, imageEnum, sizeof(int));
+			   cpuGpuAlloc(cg, featureEnum, sizeof(float));
+			   cpuGpuAlloc(cg, maskEnum, sizeof(float));
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));//batch for conv1
+
+			   int* cpu_int32 = (int*)cg->cpuImagePtr;
+			   for (int i = 0; i < IMAGE_HEIGHT * IMAGE_WIDTH; i++) {
+				   cpu_int32[i] = ferImages[(ferTextBoxInput * IMAGE_WIDTH * IMAGE_HEIGHT) + i]; //
+			   }
+
+			   for (int i = 0; i < cg->featureWidthSize * cg->featureHeightSize * cg->maskCount; i++) {
+				   cg->cpuFeaturePtr[i] = 0.0;
+			   }
+
+			   for (int i = 0; i < MASK_SIZE * MASK_SIZE; i++) {
+				   for (int j = 0; j < cg->maskCount; j++) {
+					   cg->cpuMaskPtr[j * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[i * cg->maskCount + j];
+				   }
+			   }
+
+			   for (int i = 0; i < cg->maskCount; i++) {
+				   cg->cpuMaskPtr[cg->maskCount * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[cg->maskCount * MASK_SIZE * MASK_SIZE + i];
+			   }
+
+		   }
+
+		   void setValuesForGpuModel2Conv2(CpuGpuMem* cg) {
+			   cg->maskWHSize = MASK_SIZE;
+			   cg->maskCount = MASK_COUNT_HIDDEN_LAYER_1;
+			   cg->maskDim = MASK_COUNT_FIRST_LAYER;
+			   cg->batchWeightSize = cg->maskCount;
+
+			   cpuGpuFree(cg, imageEnum);
+			   cpuGpuFree(cg, maskEnum);
+			   cpuGpuFree(cg, batchEnum);
+
+			   cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  mask allocation for 2. conv layer
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+
+			   //weights resorting
+			   int count = 0;
+			   for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
+				   for (int j = 0; j < cg->maskDim; j++) {
+					   for (int k = 0; k < cg->maskCount; k++) {
+						   cg->cpuMaskPtr[k * cg->maskWHSize * cg->maskWHSize * cg->maskDim + (j * cg->maskWHSize * cg->maskWHSize) + i] = convHiddenLayerWeights_1[count];
+						   count++;
+					   }
+				   }
+			   }
+
+			   for (int i = 0; i < cg->maskCount; i++)
+			   {
+				   cg->cpuMaskPtr[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i] =
+					   convHiddenLayerWeights_1[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
+			   }
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_1, cg->batchWeightSize);
+		   }
+
+		   void setValuesForGpuModel2Conv3(CpuGpuMem* cg) {
+			   cg->maskWHSize = MASK_SIZE;
+			   cg->maskCount = MASK_COUNT_HIDDEN_LAYER_2;
+			   cg->maskDim = MASK_COUNT_HIDDEN_LAYER_1;
+			   cg->batchWeightSize = cg->maskCount;
+
+			   cpuGpuFree(cg, maskEnum);
+			   cpuGpuFree(cg, batchEnum);
+
+			   cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  mask allocation for 2. conv layer
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+
+			   //weights resorting
+			   int count = 0;
+			   for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
+				   for (int j = 0; j < cg->maskDim; j++) {
+					   for (int k = 0; k < cg->maskCount; k++) {
+						   cg->cpuMaskPtr[k * cg->maskWHSize * cg->maskWHSize * cg->maskDim + (j * cg->maskWHSize * cg->maskWHSize) + i] = convHiddenLayerWeights_2[count];
+						   count++;
+					   }
+				   }
+			   }
+
+			   for (int i = 0; i < cg->maskCount; i++)
+			   {
+				   cg->cpuMaskPtr[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i] =
+					   convHiddenLayerWeights_2[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
+			   }
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_2, cg->batchWeightSize);
+		   }
+
+		   void setValuesForGpuModel2Conv4(CpuGpuMem* cg) {
+			   cg->maskWHSize = MASK_SIZE;
+			   cg->maskCount = MASK_COUNT_OUTPUT_LAYER;
+			   cg->maskDim = MASK_COUNT_HIDDEN_LAYER_2;
+			   cg->batchWeightSize = cg->maskCount;
+
+			   cpuGpuFree(cg, maskEnum);
+			   cpuGpuFree(cg, batchEnum);
+
+			   cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  mask allocation for 2. conv layer
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+
+			   //weights resorting
+			   int count = 0;
+			   for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
+				   for (int j = 0; j < cg->maskDim; j++) {
+					   for (int k = 0; k < cg->maskCount; k++) {
+						   cg->cpuMaskPtr[k * cg->maskWHSize * cg->maskWHSize * cg->maskDim + (j * cg->maskWHSize * cg->maskWHSize) + i] = convOutputLayerWeights[count];
+						   count++;
+					   }
+				   }
+			   }
+
+			   for (int i = 0; i < cg->maskCount; i++)
+			   {
+				   cg->cpuMaskPtr[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i] =
+					   convOutputLayerWeights[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
+			   }
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_3, cg->batchWeightSize);
+		   }
+
+		   void setValuesForGpuModel2Dense1(CpuGpuMem* cg) {
+
+			   cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;
+			   cg->denseOutputSize = DENSE_HIDDEN_LAYER_1;
+
+			   cpuGpuAlloc(cg, denseEnum, sizeof(float));
+			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
+			   cpuGpuFree(cg, maskEnum);
+			   cpuGpuFree(cg, batchEnum);
+			   cg->batchWeightSize = cg->denseOutputSize;
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+
+			   cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize);
+
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_4, cg->batchWeightSize);
+		   }
+		   
+		   void setValuesForGpuModel2Dense2(CpuGpuMem* cg) {
+
+			   cg->denseInputSize = DENSE_HIDDEN_LAYER_1;
+			   cg->denseOutputSize = DENSE_HIDDEN_LAYER_2;
+
+			   cpuGpuFree(cg, denseEnum);
+			   cpuGpuFree(cg, denseWeightEnum);
+
+			   cpuGpuAlloc(cg, denseEnum, sizeof(float));
+			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
+
+			   cpuGpuFree(cg, batchEnum);
+			   cg->batchWeightSize = cg->denseOutputSize;
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+
+			   cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize);
+
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_2, cg->denseWeightAllocSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_5, cg->batchWeightSize);
+		   }
+
+		   void setValuesForGpuModel2Dense3(CpuGpuMem* cg) {
+
+			   cg->denseInputSize = DENSE_HIDDEN_LAYER_2;
+			   cg->denseOutputSize = DENSE_OUTPUT_LAYER;
+
+			   cpuGpuFree(cg, batchEnum);
+			   cpuGpuFree(cg, denseWeightEnum);
+			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
+
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseOutputLayerWeights, cg->denseWeightAllocSize);
+		   }
+
+	private: System::Void cudaRunModel2ToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+
+
+		clock_t tStart = clock();
+
+		const int instance_count = 1;
+
+		CpuGpuMem cgs[1];
+
+		for (int i = 0; i < instance_count; i++)
+		{
+			CpuGpuMem* cg = &cgs[i];
+
+			//----forConv1
+			setValuesForGpuModel2Conv1(cg); // func
+
+			cudaError_t result = cudaStreamCreate(&cg->stream);
+			assert(result == cudaSuccess);
+
+		}
+
+		for (int i = 0; i < instance_count; i++)
+		{
+			CpuGpuMem* cg = &cgs[i];
+
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight, cg->batchWeightSize);
+			//---------conv2
+			model2Conv1ExecGPU(cg); //conv1
+
+			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
+
+			//---------conv2
+			setValuesForGpuModel2Conv2(cg); // conv2
+
+			model2Conv2ExecGpu(cg);
+
+			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_HIDDEN_LAYER_1, 1, pictureBox4Click);
+
+			//---------conv3
+			setValuesForGpuModel2Conv3(cg);
+			model2Conv3ExecGpu(cg);
+
+			//richTextBox1->Text = "";
+			//for (int i = 0; i < 128; i++) {
+			//	richTextBox1->Text += cg->cpuDensePtr[i] + "\n";
+			//}
+
+			//---------conv4
+			setValuesForGpuModel2Conv4(cg);
+			model2Conv4ExecGpu(cg);
+
+			//---------dense1
+			setValuesForGpuModel2Dense1(cg);
+			model2Dense1ExecGPU(cg);
+
+			//---------dense2
+			setValuesForGpuModel2Dense2(cg);
+			model2Dense2ExecGPU(cg);
+
+			//---------dense3
+			setValuesForGpuModel2Dense3(cg);
+			model2Dense3ExecGPU(cg);
+
+			softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
+			cudaDeviceSynchronize();
+			double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+
+			label3->Text = "Gpu clock time: " + gpuClock + " \n";
+
+			string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
+
+			chart1->Series["Duygular"]->Points->Clear();
+			for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+				System::String^ str = gcnew System::String(emot[i].c_str());
+				chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
+			}
+
+			printGraph(cg, gpuClock);
+
+			
+		}
+
+		for (int i = 0; i < instance_count; i++)
+		{
+			CpuGpuMem* cg = &cgs[i];
+
+			cpuGpuFree(cg, denseEnum);
+			cpuGpuFree(cg, denseWeightEnum);
+			//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
+
+			cudaError_t result = cudaStreamDestroy(cg->stream);
+			assert(result == cudaSuccess);
+		}
+
+		cudaError_t result = cudaDeviceSynchronize();
+		assert(result == cudaSuccess);
 
 	}
-
-	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
-		free(ferImages);
-		free(emotionLabel);
-		free(bmpColoredImage);
-		free(raw_intensity);
-		free(convInputLayerWeights);
-		free(convOutputLayerWeights);
-		free(denseOutputLayerWeights);
-		free(denseHiddenLayerWeights_1);
-		free(batchNormWeight);
-		free(batchNormWeight_1);
-		free(batchNormWeight_2);
-	}
-
-
-	private: System::Void MyForm_Load(System::Object^ sender, System::EventArgs^ e) {
-	}
-
 
 		   vector<Rect> detectAndDraw(Mat& img, CascadeClassifier& cascade, double scale) {
 			   vector<Rect> faces;
@@ -1192,7 +1731,7 @@ namespace EmotionClassification {
 
 			   // Detect faces of different sizes using cascade classifier 
 			   cascade.detectMultiScale(smallImg, faces, 1.1,
-				   2, 0 | CASCADE_SCALE_IMAGE, cv::Size(200, 200));
+				   2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
 
 
 			   // Draw circles around the faces
@@ -1239,10 +1778,6 @@ namespace EmotionClassification {
 
 			   resize(face, face2, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 1, 1, INTER_AREA);
 
-
-			   //imshow("asdas",face);
-
-
 			   System::Drawing::Bitmap^ b;
 			   System::IntPtr ptr(face2.ptr());
 			   b = gcnew System::Drawing::Bitmap(face2.cols, face2.rows, face2.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
@@ -1262,47 +1797,69 @@ namespace EmotionClassification {
 				   }
 			   }
 		   }
+
 	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) {
-		ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
+		openCamera = !openCamera;
+		if (uploadWeights == 1 && openCamera == 1) {
+			delete[] ferImages;
+			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
+			VideoCapture capture;
+			Mat frame, image;
+			vector<Rect> faces;
 
-		VideoCapture capture;
-		Mat frame, image;
-		vector<Rect> faces;
+			CascadeClassifier cascade;
+			double scale = 1;
 
-		CascadeClassifier cascade;
-		double scale = 1;
+			cascade.load(HAAR_CASCADE_PATH);
 
-		cascade.load("C:\\Program Files\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_default.xml");
-
-		capture.open(0);
-		if (capture.isOpened())
-		{
-			// Capture frames from video and detect faces
-			richTextBox1->Text += "Face Detection Started....\n";
-
-			while (1)
+			capture.open(0);
+			if (capture.isOpened())
 			{
-				capture >> frame;
-				if (frame.empty())
-					break;
-				Mat frame1 = frame.clone();
-				faces = detectAndDraw(frame1, cascade, scale);
-				if (faces.size() == 1) {
-					printFaces(faces, frame1);
-					cudaRunToolStripMenuItem_Click(sender, e);
+				// Capture frames from video and detect faces
+				richTextBox1->Text += "Face Detection Started....\n";
+
+				while (openCamera)
+				{
+					capture >> frame;
+					if (frame.empty())
+						break;
+					Mat frame1 = frame.clone();
+					faces = detectAndDraw(frame1, cascade, scale);
+					char c = (char)waitKey(50);
+					if (openCamera == 0) {
+						Bitmap^ surface;
+						pictureBox1->Image = surface;
+						pictureBox2->Image = surface;
+						pictureBox3->Image = surface;
+						pictureBox4->Image = surface;
+						label1->Text = "";
+						label2->Text = "";
+						label3->Text = "";
+						label4->Text = "";
+						break;
+					}
+					if (faces.size() == 1) {
+						printFaces(faces, frame1);
+						ferTextBoxInput = 0;
+						cudaRunModel2ToolStripMenuItem_Click(sender, e);
+					}
 				}
-				char c = (char)waitKey(50);
 
-				if (c == 27 || c == 'q' || c == 'Q')
-					break;
 			}
-			free(ferImages);
+			else
+				cout << "Could not Open Camera";
 		}
-		else
-			cout << "Could not Open Camera";
-
-
+		else {
+			if (openCamera == 0 && uploadWeights == 1) {
+				richTextBox1->Text += "Face Detection Stopped...\n";
+			}
+			else if (uploadWeights == 0) {
+				MessageBox::Show("Please Upload Weights");
+			}
+		}
 	}
+
+
 	private: System::Void pictureBox1_Click(System::Object^ sender, System::EventArgs^ e) {
 	}
 	private: System::Void pictureBox3_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -1312,14 +1869,49 @@ namespace EmotionClassification {
 		pictureBox4Click++;
 	}
 
-private: System::Void conv1FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-	pictureBox3->Visible = !(pictureBox3->Visible);
-	label1->Visible = !(label1->Visible);
-}
+	private: System::Void conv1FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		pictureBox3->Visible = !(pictureBox3->Visible);
+		label1->Visible = !(label1->Visible);
+	}
 
-private: System::Void conv2FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-	pictureBox4->Visible = !(pictureBox4->Visible);
-	label2->Visible = !(label2->Visible);
-}
-};
+	private: System::Void conv2FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+		pictureBox4->Visible = !(pictureBox4->Visible);
+		label2->Visible = !(label2->Visible);
+	}
+	private: System::Void richTextBox1_TextChanged(System::Object^ sender, System::EventArgs^ e) {
+		// set the current caret position to the end
+		richTextBox1->SelectionStart = richTextBox1->Text->Length;
+		// scroll it automatically
+		richTextBox1->ScrollToCaret();
+	}
+	private: System::Void pictureBox3_DoubleClick(System::Object^ sender, System::EventArgs^ e) {
+		pictureBox3Click--;
+		pictureBox3Click--;
+	}
+	private: System::Void pictureBox4_DoubleClick(System::Object^ sender, System::EventArgs^ e) {
+		pictureBox4Click--;
+		pictureBox4Click--;
+	}
+
+	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+		if (openCamera) {
+			openCamera = 0;
+		}
+		free(ferImages);
+		free(emotionLabel);
+		free(bmpColoredImage);
+		free(raw_intensity);
+		free(convInputLayerWeights);
+		free(convOutputLayerWeights);
+		free(denseOutputLayerWeights);
+		free(denseHiddenLayerWeights_1);
+		free(batchNormWeight);
+		free(batchNormWeight_1);
+		free(batchNormWeight_2);
+	}
+	private: System::Void MyForm_FormClosed(System::Object^ sender, System::Windows::Forms::FormClosedEventArgs^ e) {
+
+	}
+
+	};
 }

@@ -130,6 +130,7 @@
       <AdditionalDependencies>cudart.lib;opencv_world452.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\staticlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>Main</EntryPointSymbol>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
