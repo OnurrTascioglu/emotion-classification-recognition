@@ -267,8 +267,8 @@ void convHidden1ExecGPU(CpuGpuMem* cg)
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;
 
+	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuTempLayer, threadCount * sizeof(float));
 
-	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuTempLayer, 10*10*6*4);
 }
 
 
@@ -305,6 +305,8 @@ void conv1ExecGPU(CpuGpuMem* cg)
 
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;
+
+	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuTempLayer, threadCount * sizeof(float));
 
 }
 
