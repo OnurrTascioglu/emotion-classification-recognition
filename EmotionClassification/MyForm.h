@@ -30,7 +30,7 @@
 
 #define MAX_POOL 2
 #define MAX_POOL_STRIDE 2
-#define FACE_DETECTION_SCALE 200 
+#define FACE_DETECTION_SCALE 200
 #define DENSE_OUTPUT_LAYER 7
 
 #define FEATURE_RESULT_PATH "D:\\Ders\\bitirme\\features\\"
@@ -67,8 +67,10 @@ namespace EmotionClassification {
 		bool gpuRuntimeBool = 1;
 		bool uploadWeights = 0;
 		bool openCamera = 0;
+		bool openVideo = 0;
 		bool freeFerImage = 0;
-
+		int modelId = 0;
+		int temp = 0;
 		//statik
 		float* convInputLayerWeights;
 		float* convHiddenLayerWeights_1;
@@ -98,7 +100,7 @@ namespace EmotionClassification {
 		int DENSE_HIDDEN_LAYER_2 = 0;
 
 
-		System::String^ WEIGHT_PATH = "D:\\Ders\\bitirme\\agirliklar4\\";
+		System::String^ WEIGHT_PATH;
 
 
 	private: System::Windows::Forms::ToolStripMenuItem^ fer2013DSToolStripMenuItem;
@@ -124,6 +126,9 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::Label^ label4;
 	private: System::Windows::Forms::ToolStripMenuItem^ cudaRunModel2ToolStripMenuItem;
+	private: System::Windows::Forms::Button^ button4;
+	private: System::Windows::Forms::Label^ label5;
+
 	private: System::Windows::Forms::Button^ button1;
 
 
@@ -202,6 +207,8 @@ namespace EmotionClassification {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->button4 = (gcnew System::Windows::Forms::Button());
+			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->BeginInit();
@@ -275,21 +282,21 @@ namespace EmotionClassification {
 			// runToolStripMenuItem
 			// 
 			this->runToolStripMenuItem->Name = L"runToolStripMenuItem";
-			this->runToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->runToolStripMenuItem->Size = System::Drawing::Size(202, 26);
 			this->runToolStripMenuItem->Text = L"Run";
 			this->runToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::runToolStripMenuItem_Click);
 			// 
 			// cudaRunToolStripMenuItem
 			// 
 			this->cudaRunToolStripMenuItem->Name = L"cudaRunToolStripMenuItem";
-			this->cudaRunToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->cudaRunToolStripMenuItem->Size = System::Drawing::Size(202, 26);
 			this->cudaRunToolStripMenuItem->Text = L"CudaRunModel1";
 			this->cudaRunToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::cudaRunToolStripMenuItem_Click);
 			// 
 			// cudaRunModel2ToolStripMenuItem
 			// 
 			this->cudaRunModel2ToolStripMenuItem->Name = L"cudaRunModel2ToolStripMenuItem";
-			this->cudaRunModel2ToolStripMenuItem->Size = System::Drawing::Size(224, 26);
+			this->cudaRunModel2ToolStripMenuItem->Size = System::Drawing::Size(202, 26);
 			this->cudaRunModel2ToolStripMenuItem->Text = L"CudaRunModel2";
 			this->cudaRunModel2ToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::cudaRunModel2ToolStripMenuItem_Click);
 			// 
@@ -415,7 +422,6 @@ namespace EmotionClassification {
 			this->pictureBox3->TabStop = false;
 			this->pictureBox3->Visible = false;
 			this->pictureBox3->Click += gcnew System::EventHandler(this, &MyForm::pictureBox3_Click);
-			this->pictureBox3->DoubleClick += gcnew System::EventHandler(this, &MyForm::pictureBox3_DoubleClick);
 			// 
 			// pictureBox4
 			// 
@@ -427,7 +433,6 @@ namespace EmotionClassification {
 			this->pictureBox4->TabStop = false;
 			this->pictureBox4->Visible = false;
 			this->pictureBox4->Click += gcnew System::EventHandler(this, &MyForm::pictureBox4_Click);
-			this->pictureBox4->DoubleClick += gcnew System::EventHandler(this, &MyForm::pictureBox4_DoubleClick);
 			// 
 			// label1
 			// 
@@ -465,11 +470,31 @@ namespace EmotionClassification {
 			this->label4->Size = System::Drawing::Size(0, 17);
 			this->label4->TabIndex = 18;
 			// 
+			// button4
+			// 
+			this->button4->Location = System::Drawing::Point(1339, 201);
+			this->button4->Name = L"button4";
+			this->button4->Size = System::Drawing::Size(100, 24);
+			this->button4->TabIndex = 19;
+			this->button4->Text = L"Video";
+			this->button4->UseVisualStyleBackColor = true;
+			this->button4->Click += gcnew System::EventHandler(this, &MyForm::button4_Click);
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(454, 382);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(0, 17);
+			this->label5->TabIndex = 20;
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1451, 592);
+			this->Controls->Add(this->label5);
+			this->Controls->Add(this->button4);
 			this->Controls->Add(this->label4);
 			this->Controls->Add(this->label3);
 			this->Controls->Add(this->label2);
@@ -489,7 +514,6 @@ namespace EmotionClassification {
 			this->Name = L"MyForm";
 			this->Text = L"MyForm";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MyForm::MyForm_FormClosing);
-			this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &MyForm::MyForm_FormClosed);
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
@@ -525,11 +549,20 @@ namespace EmotionClassification {
 		//		mystream->Close();
 		//	}
 		//}
+
+
+		FolderBrowserDialog^ folderFileDialog1 = gcnew FolderBrowserDialog();
+		folderFileDialog1->Description = "Please choose file path for your weights.";
+
+		if (folderFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+		{
+			WEIGHT_PATH = folderFileDialog1->SelectedPath + "\\";
+		}
+
+
 		uploadWeights = 1;
 		int error = 0;
 		int success = 0;
-
-		MessageBox::Show("Loading Weights");
 
 		//------ File Path
 		IntPtr ip = Marshal::StringToHGlobalAnsi(WEIGHT_PATH);
@@ -586,11 +619,14 @@ namespace EmotionClassification {
 			richTextBox1->Text += "FullyC2 :" + DENSE_HIDDEN_LAYER_2 + "\n";
 		}
 		else {
-			MessageBox::Show("TXT file's content is not correct.");
+			MessageBox::Show("model.txt file's content is not correct.", "ERROR",
+				MessageBoxButtons::OK, MessageBoxIcon::Error);
+
 		}
 		fin.close();
 
 		if (model == "model1") {
+			modelId = 1;
 
 			//----- input layer cnn
 			filePath = input + "conv2d.csv";
@@ -655,13 +691,14 @@ namespace EmotionClassification {
 			if (readWeightFromFile(batchNormWeight_2, filePath)) error++;
 			else success++;
 
-
-			MessageBox::Show(success + " File Successfully Loaded " + "\n" + error + " File Unsuccessfully Loaded ");
+			MessageBox::Show(success + " File Successfully Loaded. " + "\n" + error + " Errors occured while loading files.", "File Load Information",
+				MessageBoxButtons::OK, MessageBoxIcon::Information);
 			button1->Enabled = true;
 			button2->Enabled = true;
 		}
 
 		else if (model == "model2") {
+			modelId = 2;
 
 			//----- input layer cnn
 			filePath = input + "conv2d.csv";
@@ -774,7 +811,8 @@ namespace EmotionClassification {
 			else success++;
 
 
-			MessageBox::Show(success + " File Successfully Loaded " + "\n" + error + " File Unsuccessfully Loaded ");
+			MessageBox::Show(success + " File Successfully Loaded. " + "\n" + error + " Errors occured while loading files.", "File Load Information",
+				MessageBoxButtons::OK, MessageBoxIcon::Information);
 			button1->Enabled = true;
 			button2->Enabled = true;
 		}
@@ -1120,7 +1158,13 @@ namespace EmotionClassification {
 						surface->SetPixel(column, row, c);
 					}
 				}
-				cudaRunModel2ToolStripMenuItem_Click(sender, e);
+				if (modelId == 1) {
+					cudaRunToolStripMenuItem_Click(sender, e);
+				}
+				if (modelId == 2) {
+					cudaRunModel2ToolStripMenuItem_Click(sender, e);
+				}
+
 			}
 		}
 		else {
@@ -1292,6 +1336,17 @@ namespace EmotionClassification {
 
 		   void printGraph(CpuGpuMem* cg, double gpuClock) {
 
+
+			   label3->Text = "Gpu clock time: " + gpuClock + " \n";
+
+			   string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
+
+			   chart1->Series["Duygular"]->Points->Clear();
+			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+				   System::String^ str = gcnew System::String(emot[i].c_str());
+				   chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
+			   }
+
 			   float max = 0.0, max2 = 0.0;
 			   int maxIndex = 0, max2Index = 0;
 			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
@@ -1392,17 +1447,6 @@ namespace EmotionClassification {
 
 			double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 
-
-			label3->Text = "Gpu clock time: " + gpuClock + " \n";
-
-			string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
-
-			chart1->Series["Duygular"]->Points->Clear();
-			for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
-				System::String^ str = gcnew System::String(emot[i].c_str());
-				chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
-			}
-
 			printGraph(cg, gpuClock);
 
 			cudaDeviceSynchronize();
@@ -1423,12 +1467,9 @@ namespace EmotionClassification {
 		cudaError_t result = cudaDeviceSynchronize();
 		assert(result == cudaSuccess);
 	}
-		   
-		   
+
 		   //---------------------------------------------------------------------------------
 		   //Model2---------------------------------------------------------------------------
-
-
 
 		   void setValuesForGpuModel2Conv1(CpuGpuMem* cg) {
 			   cg->imageHeightSize = IMAGE_HEIGHT;
@@ -1452,9 +1493,9 @@ namespace EmotionClassification {
 				   cpu_int32[i] = ferImages[(ferTextBoxInput * IMAGE_WIDTH * IMAGE_HEIGHT) + i]; //
 			   }
 
-			   for (int i = 0; i < cg->featureWidthSize * cg->featureHeightSize * cg->maskCount; i++) {
-				   cg->cpuFeaturePtr[i] = 0.0;
-			   }
+			   //for (int i = 0; i < cg->featureWidthSize * cg->featureHeightSize * cg->maskCount; i++) {
+				  // cg->cpuFeaturePtr[i] = 0.0;
+			   //}
 
 			   for (int i = 0; i < MASK_SIZE * MASK_SIZE; i++) {
 				   for (int j = 0; j < cg->maskCount; j++) {
@@ -1582,23 +1623,20 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_4, cg->batchWeightSize);
 		   }
-		   
+
 		   void setValuesForGpuModel2Dense2(CpuGpuMem* cg) {
 
 			   cg->denseInputSize = DENSE_HIDDEN_LAYER_1;
 			   cg->denseOutputSize = DENSE_HIDDEN_LAYER_2;
 
-			   cpuGpuFree(cg, denseEnum);
-			   cpuGpuFree(cg, denseWeightEnum);
 
-			   cpuGpuAlloc(cg, denseEnum, sizeof(float));
+			   cpuGpuFree(cg, denseWeightEnum);
 			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
 
 			   cpuGpuFree(cg, batchEnum);
 			   cg->batchWeightSize = cg->denseOutputSize;
 			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
 
-			   cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize);
 
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_2, cg->denseWeightAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_5, cg->batchWeightSize);
@@ -1650,6 +1688,7 @@ namespace EmotionClassification {
 
 			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
 
+
 			//---------conv2
 			setValuesForGpuModel2Conv2(cg); // conv2
 
@@ -1660,11 +1699,6 @@ namespace EmotionClassification {
 			//---------conv3
 			setValuesForGpuModel2Conv3(cg);
 			model2Conv3ExecGpu(cg);
-
-			//richTextBox1->Text = "";
-			//for (int i = 0; i < 128; i++) {
-			//	richTextBox1->Text += cg->cpuDensePtr[i] + "\n";
-			//}
 
 			//---------conv4
 			setValuesForGpuModel2Conv4(cg);
@@ -1678,6 +1712,8 @@ namespace EmotionClassification {
 			setValuesForGpuModel2Dense2(cg);
 			model2Dense2ExecGPU(cg);
 
+
+
 			//---------dense3
 			setValuesForGpuModel2Dense3(cg);
 			model2Dense3ExecGPU(cg);
@@ -1686,19 +1722,11 @@ namespace EmotionClassification {
 			cudaDeviceSynchronize();
 			double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 
-			label3->Text = "Gpu clock time: " + gpuClock + " \n";
 
-			string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
-
-			chart1->Series["Duygular"]->Points->Clear();
-			for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
-				System::String^ str = gcnew System::String(emot[i].c_str());
-				chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
-			}
 
 			printGraph(cg, gpuClock);
 
-			
+
 		}
 
 		for (int i = 0; i < instance_count; i++)
@@ -1800,6 +1828,8 @@ namespace EmotionClassification {
 
 	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) {
 		openCamera = !openCamera;
+		button4->Enabled = !openCamera;
+
 		if (uploadWeights == 1 && openCamera == 1) {
 			delete[] ferImages;
 			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
@@ -1812,20 +1842,24 @@ namespace EmotionClassification {
 
 			cascade.load(HAAR_CASCADE_PATH);
 
+			label5->Visible = true;
+
 			capture.open(0);
 			if (capture.isOpened())
 			{
 				// Capture frames from video and detect faces
-				richTextBox1->Text += "Face Detection Started....\n";
+				richTextBox1->Text += "Emotion Classification Started....\n";
 
 				while (openCamera)
 				{
+					clock_t tStart = clock();
+
 					capture >> frame;
 					if (frame.empty())
 						break;
 					Mat frame1 = frame.clone();
 					faces = detectAndDraw(frame1, cascade, scale);
-					char c = (char)waitKey(50);
+					char c = (char)waitKey(25);
 					if (openCamera == 0) {
 						Bitmap^ surface;
 						pictureBox1->Image = surface;
@@ -1841,8 +1875,16 @@ namespace EmotionClassification {
 					if (faces.size() == 1) {
 						printFaces(faces, frame1);
 						ferTextBoxInput = 0;
-						cudaRunModel2ToolStripMenuItem_Click(sender, e);
+						if (modelId == 1) {
+							cudaRunToolStripMenuItem_Click(sender, e);
+						}
+						if (modelId == 2) {
+							cudaRunModel2ToolStripMenuItem_Click(sender, e);
+						}
 					}
+					double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+					int fps = 1 / cpuClock;
+					label5->Text = "Fps: " + fps;
 				}
 
 			}
@@ -1851,7 +1893,8 @@ namespace EmotionClassification {
 		}
 		else {
 			if (openCamera == 0 && uploadWeights == 1) {
-				richTextBox1->Text += "Face Detection Stopped...\n";
+				richTextBox1->Text += "Emotion Classification Stopped...\n";
+				label5->Visible = false;
 			}
 			else if (uploadWeights == 0) {
 				MessageBox::Show("Please Upload Weights");
@@ -1859,6 +1902,105 @@ namespace EmotionClassification {
 		}
 	}
 
+	private: System::Void button4_Click(System::Object^ sender, System::EventArgs^ e) {
+		openVideo = !openVideo;
+		button3->Enabled = !openVideo;
+		if (uploadWeights == 1 && openVideo == 1) {
+
+			Stream^ mystream;
+			OpenFileDialog^ openFileDialog1 = gcnew OpenFileDialog;
+			System::String^ strfilename;
+
+			openFileDialog1->InitialDirectory = "";
+			openFileDialog1->Filter = "Video files |*.avi; *.m4v; *.mkv; *.mov; *.mp4; *.mp4v;*.mpeg; *.mpeg1; *.mpeg2; *.mpeg4;*.rec; *.webm; *.dat; ";
+			openFileDialog1->FilterIndex = 5;
+			openFileDialog1->RestoreDirectory = true;
+
+			if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+			{
+				strfilename = openFileDialog1->InitialDirectory + openFileDialog1->FileName;
+			}
+			if (strfilename == nullptr) {
+				MessageBox::Show(" Errors occured while loading video.", "ERROR",
+					MessageBoxButtons::OK, MessageBoxIcon::Error);
+				openVideo = 0;
+				return;
+			}
+			IntPtr ip = Marshal::StringToHGlobalAnsi(strfilename);
+			const char* inputStr = static_cast<const char*>(ip.ToPointer());
+			std::string input(inputStr);
+
+
+			delete[] ferImages;
+			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
+			VideoCapture capture(input);
+			Mat frame, image;
+			vector<Rect> faces;
+
+			CascadeClassifier cascade;
+			double scale = 1;
+
+			cascade.load(HAAR_CASCADE_PATH);
+			int videoFps = capture.get(CAP_PROP_FPS);
+
+			if (capture.isOpened())
+			{
+				// Capture frames from video and detect faces
+				richTextBox1->Text += "Emotion Classification Started....\n";
+
+				label5->Visible =  true;
+				while (openVideo)
+				{
+					clock_t tStart = clock();
+
+					capture.read(frame);
+					if (frame.empty())
+						break;
+					Mat frame1 = frame.clone();
+					faces = detectAndDraw(frame1, cascade, scale);
+					char c = (char)waitKey(1000/(videoFps+10));
+					if (openVideo == 0) {
+						Bitmap^ surface;
+						pictureBox1->Image = surface;
+						pictureBox2->Image = surface;
+						pictureBox3->Image = surface;
+						pictureBox4->Image = surface;
+						label1->Text = "";
+						label2->Text = "";
+						label3->Text = "";
+						label4->Text = "";
+						break;
+					}
+					if (faces.size() == 1) {
+						printFaces(faces, frame1);
+						ferTextBoxInput = 0;
+						if (modelId == 1) {
+							cudaRunToolStripMenuItem_Click(sender, e);
+						}
+						if (modelId == 2) {
+							cudaRunModel2ToolStripMenuItem_Click(sender, e);
+						}
+					}
+					double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+					int  fps = 1 / cpuClock;
+					label5->Text = "Fps: " + fps;
+				}
+
+			}
+			else
+				cout << "Could not Open Camera";
+		}
+		else {
+			if (openCamera == 0 && uploadWeights == 1) {
+				richTextBox1->Text += "Emotion Classification Stopped...\n";
+				label5->Visible = false;
+			}
+			else if (uploadWeights == 0) {
+				MessageBox::Show("Please Upload Weights");
+			}
+		}
+
+	}
 
 	private: System::Void pictureBox1_Click(System::Object^ sender, System::EventArgs^ e) {
 	}
@@ -1868,12 +2010,10 @@ namespace EmotionClassification {
 	private: System::Void pictureBox4_Click(System::Object^ sender, System::EventArgs^ e) {
 		pictureBox4Click++;
 	}
-
 	private: System::Void conv1FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		pictureBox3->Visible = !(pictureBox3->Visible);
 		label1->Visible = !(label1->Visible);
 	}
-
 	private: System::Void conv2FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		pictureBox4->Visible = !(pictureBox4->Visible);
 		label2->Visible = !(label2->Visible);
@@ -1884,15 +2024,6 @@ namespace EmotionClassification {
 		// scroll it automatically
 		richTextBox1->ScrollToCaret();
 	}
-	private: System::Void pictureBox3_DoubleClick(System::Object^ sender, System::EventArgs^ e) {
-		pictureBox3Click--;
-		pictureBox3Click--;
-	}
-	private: System::Void pictureBox4_DoubleClick(System::Object^ sender, System::EventArgs^ e) {
-		pictureBox4Click--;
-		pictureBox4Click--;
-	}
-
 	private: System::Void MyForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
 		if (openCamera) {
 			openCamera = 0;
@@ -1909,9 +2040,5 @@ namespace EmotionClassification {
 		free(batchNormWeight_1);
 		free(batchNormWeight_2);
 	}
-	private: System::Void MyForm_FormClosed(System::Object^ sender, System::Windows::Forms::FormClosedEventArgs^ e) {
-
-	}
-
 	};
 }
