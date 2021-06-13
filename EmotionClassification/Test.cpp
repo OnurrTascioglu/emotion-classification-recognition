@@ -17,10 +17,6 @@ float* conv1(BYTE* inputImage, float* weights, int& width, int& height, int mask
 
 
 
-
-
-
-
 	for (int i = 0; i < width * height; i++) {
 		image[i] = inputImage[(imageCount * width * height) + i]; //
 	}
@@ -256,20 +252,6 @@ float* dense(float* inputLayer, float* weights, int inputLayerSize, int outputLa
 
 float* softmax(float* input, int size) {
 
-	/*float sum = 0.0;
-
-	for (int i = 0; i < size; i++)
-	{
-		sum += expf(input[i]);
-	}
-
-	for (int i = 0; i < size; i++)
-	{
-		input[i] = expf(input[i]) / sum;
-	}
-
-	return input;*/
-
 	float m = -INFINITY;
 	for (size_t i = 0; i < size; i++) {
 		if (input[i] > m) {
@@ -286,8 +268,6 @@ float* softmax(float* input, int size) {
 	for (size_t i = 0; i < size; i++) {
 		input[i] = expf(input[i] - offset);
 	}
-
-
 
 	return input;
 }

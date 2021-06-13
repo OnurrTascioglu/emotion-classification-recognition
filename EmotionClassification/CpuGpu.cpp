@@ -177,12 +177,12 @@ void cpuGpuMemCopy(enum cudaMemcpyKind copyKind, struct CpuGpuMem* p_cg, void* d
 	switch (copyKind)
 	{
 	case cudaMemcpyHostToDevice:
-		result = cudaMemcpyAsync(destPtr, srcPtr, allocation_size, copyKind, p_cg->stream);
+		result = cudaMemcpy(destPtr, srcPtr, allocation_size, copyKind);
 		assert(result == cudaSuccess);
 
 		break;
 	case cudaMemcpyDeviceToHost:
-		result = cudaMemcpyAsync(destPtr, srcPtr, allocation_size, copyKind, p_cg->stream);
+		result = cudaMemcpy(destPtr, srcPtr, allocation_size, copyKind);
 		assert(result == cudaSuccess);
 		break;
 	default:

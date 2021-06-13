@@ -179,7 +179,7 @@ void model2Dense3ExecGPU(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuDensePtr, allocSize);
 	assert(result == cudaSuccess);
 
-	denseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer2,cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
+	denseGPU << <gridDim, blockDim>> > (cg->gpuTempLayer2,cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
 
 	free(cg->cpuDensePtr);
 	cg->cpuDensePtr = (float*)malloc(cg->denseOutputAllocSize);
@@ -202,9 +202,9 @@ void model2Dense2ExecGPU(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuTempLayer2, allocSize);
 	assert(result == cudaSuccess);
 
-	denseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuDensePtr, cg->gpuTempLayer2, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
+	denseGPU << <gridDim, blockDim>> > (cg->gpuDensePtr, cg->gpuTempLayer2, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
 	
-	batchAndReLuDenseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer2, cg->gpuBatchPtr, cg->denseOutputSize);
+	batchAndReLuDenseGPU << <gridDim, blockDim>> > (cg->gpuTempLayer2, cg->gpuBatchPtr, cg->denseOutputSize);
 
 }
 
@@ -226,16 +226,16 @@ void model2Dense1ExecGPU(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuTempLayer2, allocSize);
 	assert(result == cudaSuccess);
 
-	flattenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuTempLayer2, fws, fhs, mc);
+	flattenGPU << <gridDim, blockDim>> > (cg->gpuTempLayer, cg->gpuTempLayer2, fws, fhs, mc);
 
 	threadCount = cg->denseOutputSize;
 	gridDim = (threadCount + blockDim - 1) / blockDim;
 
 	//clock_t tStart = clock();
 	//double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
-	denseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer2, cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
+	denseGPU << <gridDim, blockDim>> > (cg->gpuTempLayer2, cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
 
-	batchAndReLuDenseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuDensePtr, cg->gpuBatchPtr, cg->denseOutputSize);
+	batchAndReLuDenseGPU << <gridDim, blockDim>> > (cg->gpuDensePtr, cg->gpuBatchPtr, cg->denseOutputSize);
 }
 
 void model2Conv4ExecGpu(CpuGpuMem* cg)
@@ -258,12 +258,12 @@ void model2Conv4ExecGpu(CpuGpuMem* cg)
 	assert(result == cudaSuccess);
 
 
-	convHiddenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
+	convHiddenGPU << <gridDim, blockDim >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
 
 	cg->featureWidthSize = fws - ms + 1;
 	cg->featureHeightSize = fhs - ms + 1;
 
-	batchNormGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
+	batchNormGPU << <gridDim, blockDim >> > (cg->gpuTempLayer, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
 	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuTempLayer, tempAllocSize);
 
@@ -289,14 +289,14 @@ void model2Conv3ExecGpu(CpuGpuMem* cg)
 	assert(result == cudaSuccess);
 
 
-	convHiddenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
+	convHiddenGPU << <gridDim, blockDim >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
 
 	cg->featureWidthSize = fws - ms + 1;
 	cg->featureHeightSize = fhs - ms + 1;
 	fws = cg->featureWidthSize;
 	fhs = cg->featureHeightSize;
 
-	batchNormGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
+	batchNormGPU << <gridDim, blockDim>> > (cg->gpuTempLayer, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
 	threadCount = cg->maskCount * (fws / cg->pool) * (fhs / cg->pool);
 	gridDim = (threadCount + blockDim - 1) / blockDim;
@@ -310,7 +310,7 @@ void model2Conv3ExecGpu(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuFeaturePtr, cg->featureAllocSize);
 	assert(result == cudaSuccess);
 
-	maxPoolingGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
+	maxPoolingGPU << <gridDim, blockDim >> > (cg->gpuTempLayer, cg->gpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
 
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;
@@ -340,12 +340,12 @@ void model2Conv2ExecGpu(CpuGpuMem* cg) {
 	assert(result == cudaSuccess);
 
 
-	convHiddenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
+	convHiddenGPU << <gridDim, blockDim >> > (cg->gpuTempLayer, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
 
 	cg->featureWidthSize = fws - ms + 1;
 	cg->featureHeightSize = fhs - ms + 1;
 
-	batchNormGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
+	batchNormGPU << <gridDim, blockDim>> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
 	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuFeaturePtr, cg->gpuFeaturePtr, threadCount * sizeof(float));
 
@@ -367,10 +367,10 @@ void model2Conv1ExecGPU(CpuGpuMem* cg)
 	int gridDim = (threadCount + blockDim - 1) / blockDim;
 
 
-	conv1GPU << <gridDim, blockDim, 0, cg->stream >> > ((int*)cg->gpuImagePtr, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->imageWidthSize, cg->imageHeightSize,
+	conv1GPU << <gridDim, blockDim >> > ((int*)cg->gpuImagePtr, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->imageWidthSize, cg->imageHeightSize,
 		cg->maskWHSize, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
-	batchNormGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
+	batchNormGPU << <gridDim, blockDim>> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
 	threadCount = cg->maskCount * (fws / cg->pool) * (fhs / cg->pool);
 	gridDim = (threadCount + blockDim - 1) / blockDim;
@@ -380,7 +380,7 @@ void model2Conv1ExecGPU(CpuGpuMem* cg)
 	assert(result == cudaSuccess);
 
 
-	maxPoolingGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
+	maxPoolingGPU << <gridDim, blockDim>> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
 
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;
@@ -406,7 +406,7 @@ void dense2ExecGPU(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuTempLayer2, allocSize);
 	assert(result == cudaSuccess);
 
-	denseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuDensePtr, cg->gpuTempLayer2, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
+	denseGPU << <gridDim, blockDim>> > (cg->gpuDensePtr, cg->gpuTempLayer2, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
 
 	free(cg->cpuDensePtr);
 	cg->cpuDensePtr = (float*)malloc(cg->denseOutputAllocSize);
@@ -432,16 +432,16 @@ void dense1ExecGPU(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuTempLayer2, allocSize);
 	assert(result == cudaSuccess);
 
-	flattenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuTempLayer2, fws, fhs, mc);
+	flattenGPU << <gridDim, blockDim>> > (cg->gpuTempLayer, cg->gpuTempLayer2, fws, fhs, mc);
 
 	threadCount = cg->denseOutputSize;
 	gridDim = (threadCount + blockDim - 1) / blockDim;
 
 	//clock_t tStart = clock();
 	//double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
-	denseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer2, cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
+	denseGPU << <gridDim, blockDim>> > (cg->gpuTempLayer2, cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
 
-	batchAndReLuDenseGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuDensePtr, cg->gpuBatchPtr, cg->denseOutputSize);
+	batchAndReLuDenseGPU << <gridDim, blockDim>> > (cg->gpuDensePtr, cg->gpuBatchPtr, cg->denseOutputSize);
 
 	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuDensePtr, cg->gpuDensePtr, cg->denseOutputSize * sizeof(float));
 }
@@ -469,14 +469,14 @@ void convHidden1ExecGPU(CpuGpuMem* cg)
 	cudaMemset(cg->gpuFeaturePtr, 0, cg->featureAllocSize);
 
 
-	convHiddenGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuTempLayer, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
+	convHiddenGPU << <gridDim, blockDim>> > (cg->gpuTempLayer, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskWHSize, cg->maskCount, cg->maskDim);
 
 	cg->featureWidthSize = fws - ms + 1;
 	cg->featureHeightSize = fhs - ms + 1;
 	fws = cg->featureWidthSize;
 	fhs = cg->featureHeightSize;
 
-	batchNormGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
+	batchNormGPU << <gridDim, blockDim >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
 	threadCount = cg->maskCount * (fws / cg->pool) * (fhs / cg->pool);
 	gridDim = (threadCount + blockDim - 1) / blockDim;
@@ -487,7 +487,7 @@ void convHidden1ExecGPU(CpuGpuMem* cg)
 	result = cudaMalloc((float**)&cg->gpuTempLayer, threadCount * sizeof(float));
 	assert(result == cudaSuccess);
 
-	maxPoolingGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
+	maxPoolingGPU << <gridDim, blockDim>> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
 
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;
@@ -512,10 +512,10 @@ void conv1ExecGPU(CpuGpuMem* cg)
 	int gridDim = (threadCount + blockDim - 1) / blockDim;
 
 
-	conv1GPU << <gridDim, blockDim, 0, cg->stream >> > ((int*)cg->gpuImagePtr, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->imageWidthSize, cg->imageHeightSize,
+	conv1GPU << <gridDim, blockDim>> > ((int*)cg->gpuImagePtr, cg->gpuFeaturePtr, cg->gpuMaskPtr, cg->imageWidthSize, cg->imageHeightSize,
 		cg->maskWHSize, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
-	batchNormGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
+	batchNormGPU << <gridDim, blockDim>> > (cg->gpuFeaturePtr, cg->gpuBatchPtr, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount);
 
 	threadCount = cg->maskCount * (fws / cg->pool) * (fhs / cg->pool);
 	gridDim = (threadCount + blockDim - 1) / blockDim;
@@ -525,7 +525,7 @@ void conv1ExecGPU(CpuGpuMem* cg)
 	assert(result == cudaSuccess);
 
 
-	maxPoolingGPU << <gridDim, blockDim, 0, cg->stream >> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
+	maxPoolingGPU << <gridDim, blockDim>> > (cg->gpuFeaturePtr, cg->gpuTempLayer, cg->featureWidthSize, cg->featureHeightSize, cg->maskCount, cg->pool, cg->stride);
 
 	cg->featureWidthSize /= cg->stride;
 	cg->featureHeightSize /= cg->stride;

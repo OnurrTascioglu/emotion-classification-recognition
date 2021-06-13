@@ -102,7 +102,7 @@
       <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>cudart.lib;opencv_world452d.lib</AdditionalDependencies>
+      <AdditionalDependencies>cudart.lib;opencv_world452d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>Main</EntryPointSymbol>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\staticlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -110,6 +110,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <AdditionalOptions>-Xptxas -dlcm=cg %(AdditionalOptions)</AdditionalOptions>
+      <CodeGeneration>compute_61,sm_61</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -127,7 +128,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>cudart.lib;opencv_world452.lib</AdditionalDependencies>
+      <AdditionalDependencies>cudart.lib;opencv_world452.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\staticlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>Main</EntryPointSymbol>
       <SubSystem>Windows</SubSystem>
@@ -135,6 +136,9 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <AdditionalOptions>-Xptxas -dlcm=cg %(AdditionalOptions)</AdditionalOptions>
+      <CodeGeneration>compute_61,sm_61</CodeGeneration>
+      <MaxRegCount>32</MaxRegCount>
+      <FastMath>true</FastMath>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -165,9 +169,6 @@
     <EmbeddedResource Include="MyForm.resx">
       <DependentUpon>MyForm.h</DependentUpon>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="D:\Ders\bitirme\bitirme ağırlıklar\conv2d.csv" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Test.cu" />

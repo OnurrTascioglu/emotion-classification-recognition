@@ -49,11 +49,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="D:\Ders\bitirme\bitirme ağırlıklar\conv2d.csv">
-      <Filter>Resource Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <CudaCompile Include="Test.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>

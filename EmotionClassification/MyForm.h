@@ -30,7 +30,7 @@
 
 #define MAX_POOL 2
 #define MAX_POOL_STRIDE 2
-#define FACE_DETECTION_SCALE 200
+#define FACE_DETECTION_SCALE 150
 #define DENSE_OUTPUT_LAYER 7
 
 #define FEATURE_RESULT_PATH "D:\\Ders\\bitirme\\features\\"
@@ -129,6 +129,10 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::Button^ button4;
 	private: System::Windows::Forms::Label^ label5;
 
+
+
+
+
 	private: System::Windows::Forms::Button^ button1;
 
 
@@ -176,9 +180,9 @@ namespace EmotionClassification {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea1 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
-			System::Windows::Forms::DataVisualization::Charting::Legend^ legend1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
-			System::Windows::Forms::DataVisualization::Charting::Series^ series1 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
+			System::Windows::Forms::DataVisualization::Charting::ChartArea^ chartArea2 = (gcnew System::Windows::Forms::DataVisualization::Charting::ChartArea());
+			System::Windows::Forms::DataVisualization::Charting::Legend^ legend2 = (gcnew System::Windows::Forms::DataVisualization::Charting::Legend());
+			System::Windows::Forms::DataVisualization::Charting::Series^ series2 = (gcnew System::Windows::Forms::DataVisualization::Charting::Series());
 			this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
 			this->dosyaToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -234,7 +238,7 @@ namespace EmotionClassification {
 			// 
 			this->dosyaToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->openToolStripMenuItem });
 			this->dosyaToolStripMenuItem->Name = L"dosyaToolStripMenuItem";
-			this->dosyaToolStripMenuItem->Size = System::Drawing::Size(46, 24);
+			this->dosyaToolStripMenuItem->Size = System::Drawing::Size(46, 26);
 			this->dosyaToolStripMenuItem->Text = L"File";
 			// 
 			// openToolStripMenuItem
@@ -307,7 +311,7 @@ namespace EmotionClassification {
 					this->conv2FeaturesToolStripMenuItem
 			});
 			this->displayToolStripMenuItem->Name = L"displayToolStripMenuItem";
-			this->displayToolStripMenuItem->Size = System::Drawing::Size(72, 24);
+			this->displayToolStripMenuItem->Size = System::Drawing::Size(72, 26);
 			this->displayToolStripMenuItem->Text = L"Display";
 			// 
 			// conv1FeaturesToolStripMenuItem
@@ -368,16 +372,16 @@ namespace EmotionClassification {
 			// 
 			// chart1
 			// 
-			chartArea1->Name = L"ChartArea1";
-			this->chart1->ChartAreas->Add(chartArea1);
-			legend1->Name = L"Legend1";
-			this->chart1->Legends->Add(legend1);
+			chartArea2->Name = L"ChartArea1";
+			this->chart1->ChartAreas->Add(chartArea2);
+			legend2->Name = L"Legend1";
+			this->chart1->Legends->Add(legend2);
 			this->chart1->Location = System::Drawing::Point(899, 298);
 			this->chart1->Name = L"chart1";
-			series1->ChartArea = L"ChartArea1";
-			series1->Legend = L"Legend1";
-			series1->Name = L"Duygular";
-			this->chart1->Series->Add(series1);
+			series2->ChartArea = L"ChartArea1";
+			series2->Legend = L"Legend1";
+			series2->Name = L"Duygular";
+			this->chart1->Series->Add(series2);
 			this->chart1->Size = System::Drawing::Size(540, 263);
 			this->chart1->TabIndex = 9;
 			this->chart1->Text = L"chart1";
@@ -416,7 +420,7 @@ namespace EmotionClassification {
 			// 
 			this->pictureBox3->Location = System::Drawing::Point(723, 32);
 			this->pictureBox3->Name = L"pictureBox3";
-			this->pictureBox3->Size = System::Drawing::Size(170, 157);
+			this->pictureBox3->Size = System::Drawing::Size(170, 166);
 			this->pictureBox3->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->pictureBox3->TabIndex = 13;
 			this->pictureBox3->TabStop = false;
@@ -427,7 +431,7 @@ namespace EmotionClassification {
 			// 
 			this->pictureBox4->Location = System::Drawing::Point(899, 31);
 			this->pictureBox4->Name = L"pictureBox4";
-			this->pictureBox4->Size = System::Drawing::Size(126, 122);
+			this->pictureBox4->Size = System::Drawing::Size(134, 138);
 			this->pictureBox4->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->pictureBox4->TabIndex = 14;
 			this->pictureBox4->TabStop = false;
@@ -437,7 +441,7 @@ namespace EmotionClassification {
 			// label1
 			// 
 			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(722, 32);
+			this->label1->Location = System::Drawing::Point(722, 201);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(48, 17);
 			this->label1->TabIndex = 15;
@@ -447,7 +451,7 @@ namespace EmotionClassification {
 			// label2
 			// 
 			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(896, 32);
+			this->label2->Location = System::Drawing::Point(896, 172);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(48, 17);
 			this->label2->TabIndex = 16;
@@ -1164,7 +1168,6 @@ namespace EmotionClassification {
 				if (modelId == 2) {
 					cudaRunModel2ToolStripMenuItem_Click(sender, e);
 				}
-
 			}
 		}
 		else {
@@ -1390,79 +1393,62 @@ namespace EmotionClassification {
 
 		clock_t tStart = clock();
 
-		const int instance_count = 1;
+		CpuGpuMem new_cg;
+		CpuGpuMem* cg = &new_cg;
 
-		CpuGpuMem cgs[1];
-
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
-
-			//----forConv1
-			setValuesForGpuConv1(cg); // func
-
-			cudaError_t result = cudaStreamCreate(&cg->stream);
-			assert(result == cudaSuccess);
+		//----forConv1
+		setValuesForGpuConv1(cg); // func
 
 
-			//cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
 
-		}
+		//cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
 
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
 
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
 
-			//---------conv2
-			conv1ExecGPU(cg); //conv1
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
 
-			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
+		//---------conv2
+		conv1ExecGPU(cg); //conv1
 
-			//---------conv2
-			setValuesForGpuConv2(cg); // conv2
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
 
-			convHidden1ExecGPU(cg);
+		//---------conv2
+		setValuesForGpuConv2(cg); // conv2
 
-			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_OUTPUT_LAYER, 1, pictureBox4Click);
+		convHidden1ExecGPU(cg);
 
-			//---------Dense1
-			setValuesForGpuDense1(cg);
-			dense1ExecGPU(cg);
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_OUTPUT_LAYER, 1, pictureBox4Click);
 
-			//richTextBox1->Text = "";
-			//for (int i = 0; i < 128; i++) {
-			//	richTextBox1->Text += cg->cpuDensePtr[i] + "\n";
-			//}
+		//---------Dense1
+		setValuesForGpuDense1(cg);
+		dense1ExecGPU(cg);
 
-			//---------Dense2
-			setValuesForGpuDense2(cg);
-			dense2ExecGPU(cg);
+		//richTextBox1->Text = "";
+		//for (int i = 0; i < 128; i++) {
+		//	richTextBox1->Text += cg->cpuDensePtr[i] + "\n";
+		//}
 
-			softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
+		//---------Dense2
+		setValuesForGpuDense2(cg);
+		dense2ExecGPU(cg);
 
-			double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+		softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
 
-			printGraph(cg, gpuClock);
+		double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 
-			cudaDeviceSynchronize();
-		}
+		printGraph(cg, gpuClock);
 
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
+		cudaDeviceSynchronize();
 
-			cpuGpuFree(cg, denseEnum);
-			cpuGpuFree(cg, denseWeightEnum);
-			//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
 
-			cudaError_t result = cudaStreamDestroy(cg->stream);
-			assert(result == cudaSuccess);
-		}
+		cpuGpuFree(cg, denseEnum);
+		cpuGpuFree(cg, denseWeightEnum);
+		//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
+
+
 
 		cudaError_t result = cudaDeviceSynchronize();
 		assert(result == cudaSuccess);
@@ -1510,6 +1496,7 @@ namespace EmotionClassification {
 		   }
 
 		   void setValuesForGpuModel2Conv2(CpuGpuMem* cg) {
+
 			   cg->maskWHSize = MASK_SIZE;
 			   cg->maskCount = MASK_COUNT_HIDDEN_LAYER_1;
 			   cg->maskDim = MASK_COUNT_FIRST_LAYER;
@@ -1658,88 +1645,61 @@ namespace EmotionClassification {
 
 
 		clock_t tStart = clock();
+		CpuGpuMem new_cg;
+		CpuGpuMem* cg = &new_cg;
 
-		const int instance_count = 1;
+		//----forConv1
+		setValuesForGpuModel2Conv1(cg); // func
 
-		CpuGpuMem cgs[1];
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight, cg->batchWeightSize);
 
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
+		//---------conv2
+		model2Conv1ExecGPU(cg); //conv1
 
-			//----forConv1
-			setValuesForGpuModel2Conv1(cg); // func
-
-			cudaError_t result = cudaStreamCreate(&cg->stream);
-			assert(result == cudaSuccess);
-
-		}
-
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
-
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-			cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight, cg->batchWeightSize);
-			//---------conv2
-			model2Conv1ExecGPU(cg); //conv1
-
-			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
 
 
-			//---------conv2
-			setValuesForGpuModel2Conv2(cg); // conv2
+		//---------conv2
+		setValuesForGpuModel2Conv2(cg); // conv2
 
-			model2Conv2ExecGpu(cg);
+		model2Conv2ExecGpu(cg);
 
-			showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_HIDDEN_LAYER_1, 1, pictureBox4Click);
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_HIDDEN_LAYER_1, 1, pictureBox4Click);
 
-			//---------conv3
-			setValuesForGpuModel2Conv3(cg);
-			model2Conv3ExecGpu(cg);
+		//---------conv3
+		setValuesForGpuModel2Conv3(cg);
+		model2Conv3ExecGpu(cg);
 
-			//---------conv4
-			setValuesForGpuModel2Conv4(cg);
-			model2Conv4ExecGpu(cg);
+		//---------conv4
+		setValuesForGpuModel2Conv4(cg);
+		model2Conv4ExecGpu(cg);
 
-			//---------dense1
-			setValuesForGpuModel2Dense1(cg);
-			model2Dense1ExecGPU(cg);
+		//---------dense1
+		setValuesForGpuModel2Dense1(cg);
+		model2Dense1ExecGPU(cg);
 
-			//---------dense2
-			setValuesForGpuModel2Dense2(cg);
-			model2Dense2ExecGPU(cg);
+		//---------dense2
+		setValuesForGpuModel2Dense2(cg);
+		model2Dense2ExecGPU(cg);
 
 
 
-			//---------dense3
-			setValuesForGpuModel2Dense3(cg);
-			model2Dense3ExecGPU(cg);
+		//---------dense3
+		setValuesForGpuModel2Dense3(cg);
+		model2Dense3ExecGPU(cg);
 
-			softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
-			cudaDeviceSynchronize();
-			double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+		softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
 
+		double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 
+		printGraph(cg, gpuClock);
 
-			printGraph(cg, gpuClock);
+		cpuGpuFree(cg, denseEnum);
+		cpuGpuFree(cg, denseWeightEnum);
 
-
-		}
-
-		for (int i = 0; i < instance_count; i++)
-		{
-			CpuGpuMem* cg = &cgs[i];
-
-			cpuGpuFree(cg, denseEnum);
-			cpuGpuFree(cg, denseWeightEnum);
-			//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
-
-			cudaError_t result = cudaStreamDestroy(cg->stream);
-			assert(result == cudaSuccess);
-		}
 
 		cudaError_t result = cudaDeviceSynchronize();
 		assert(result == cudaSuccess);
@@ -1939,6 +1899,7 @@ namespace EmotionClassification {
 
 			CascadeClassifier cascade;
 			double scale = 1;
+			int fpsWait = 0;
 
 			cascade.load(HAAR_CASCADE_PATH);
 			int videoFps = capture.get(CAP_PROP_FPS);
@@ -1948,7 +1909,7 @@ namespace EmotionClassification {
 				// Capture frames from video and detect faces
 				richTextBox1->Text += "Emotion Classification Started....\n";
 
-				label5->Visible =  true;
+				label5->Visible = true;
 				while (openVideo)
 				{
 					clock_t tStart = clock();
@@ -1958,7 +1919,13 @@ namespace EmotionClassification {
 						break;
 					Mat frame1 = frame.clone();
 					faces = detectAndDraw(frame1, cascade, scale);
-					char c = (char)waitKey(1000/(videoFps+10));
+					if(modelId == 1){
+						fpsWait = 6;
+					}
+					if (modelId == 2) {
+						fpsWait = 25; // for fps wait
+					}
+					char c = (char)waitKey(1000 / (videoFps + fpsWait));
 					if (openVideo == 0) {
 						Bitmap^ surface;
 						pictureBox1->Image = surface;
@@ -2040,5 +2007,7 @@ namespace EmotionClassification {
 		free(batchNormWeight_1);
 		free(batchNormWeight_2);
 	}
-	};
+
+
+};
 }
