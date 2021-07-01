@@ -87,6 +87,7 @@ void cpuGpuAlloc(CpuGpuMem* p_cg, enum cpuGpuMemVar keyword, int sizeOfType)
 	}
 
 }
+
 void cpuGpuFree(CpuGpuMem* p_cg, enum cpuGpuMemVar keyword)
 {
 	cudaError_t result;

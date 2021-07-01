@@ -201,7 +201,6 @@ BYTE* ConvertIntensityToBMP(BYTE* Buffer, int width, int height, long* newsize)
 	return newbuf;
 } //ConvertIntensityToBMP
 
-
 bool readWeightFromFile(float* convWeight, string filePath) {
 
 	int index = 0;

@@ -25,7 +25,7 @@
 
 #define IMAGE_WIDTH 48
 #define IMAGE_HEIGHT 48
-#define TOTAL_IMAGE 82
+#define TOTAL_IMAGE 7200
 #define MASK_SIZE 3
 
 #define MAX_POOL 2
@@ -71,6 +71,10 @@ namespace EmotionClassification {
 		bool freeFerImage = 0;
 		int modelId = 0;
 		int temp = 0;
+		int rank1 = 0;
+		int rank2 = 0;
+		int accTrue = 0;
+		int acc2True = 0;
 		//statik
 		float* convInputLayerWeights;
 		float* convHiddenLayerWeights_1;
@@ -91,6 +95,8 @@ namespace EmotionClassification {
 		int ferTextBoxInput = 0;
 		int pictureBox3Click = 0;
 		int pictureBox4Click = 0;
+		int pictureBox5Click = 0;
+		int pictureBox6Click = 0;
 
 		int MASK_COUNT_FIRST_LAYER = 0;
 		int MASK_COUNT_HIDDEN_LAYER_1 = 0;
@@ -128,6 +134,14 @@ namespace EmotionClassification {
 	private: System::Windows::Forms::ToolStripMenuItem^ cudaRunModel2ToolStripMenuItem;
 	private: System::Windows::Forms::Button^ button4;
 	private: System::Windows::Forms::Label^ label5;
+	private: System::Windows::Forms::Button^ button5;
+	private: System::Windows::Forms::PictureBox^ pictureBox5;
+	private: System::Windows::Forms::PictureBox^ pictureBox6;
+	private: System::Windows::Forms::Label^ label6;
+	private: System::Windows::Forms::Label^ label7;
+	private: System::Windows::Forms::ToolStripMenuItem^ conv3FeaturesToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ conv4FeaturesToolStripMenuItem;
+	private: System::Windows::Forms::Button^ button6;
 
 
 
@@ -196,6 +210,8 @@ namespace EmotionClassification {
 			this->displayToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->conv1FeaturesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->conv2FeaturesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->conv3FeaturesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->conv4FeaturesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->richTextBox1 = (gcnew System::Windows::Forms::RichTextBox());
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
@@ -213,12 +229,20 @@ namespace EmotionClassification {
 			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->button4 = (gcnew System::Windows::Forms::Button());
 			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->button5 = (gcnew System::Windows::Forms::Button());
+			this->pictureBox5 = (gcnew System::Windows::Forms::PictureBox());
+			this->pictureBox6 = (gcnew System::Windows::Forms::PictureBox());
+			this->label6 = (gcnew System::Windows::Forms::Label());
+			this->label7 = (gcnew System::Windows::Forms::Label());
+			this->button6 = (gcnew System::Windows::Forms::Button());
 			this->menuStrip1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chart1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox6))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// menuStrip1
@@ -238,7 +262,7 @@ namespace EmotionClassification {
 			// 
 			this->dosyaToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->openToolStripMenuItem });
 			this->dosyaToolStripMenuItem->Name = L"dosyaToolStripMenuItem";
-			this->dosyaToolStripMenuItem->Size = System::Drawing::Size(46, 26);
+			this->dosyaToolStripMenuItem->Size = System::Drawing::Size(46, 24);
 			this->dosyaToolStripMenuItem->Text = L"File";
 			// 
 			// openToolStripMenuItem
@@ -306,12 +330,12 @@ namespace EmotionClassification {
 			// 
 			// displayToolStripMenuItem
 			// 
-			this->displayToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+			this->displayToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(4) {
 				this->conv1FeaturesToolStripMenuItem,
-					this->conv2FeaturesToolStripMenuItem
+					this->conv2FeaturesToolStripMenuItem, this->conv3FeaturesToolStripMenuItem, this->conv4FeaturesToolStripMenuItem
 			});
 			this->displayToolStripMenuItem->Name = L"displayToolStripMenuItem";
-			this->displayToolStripMenuItem->Size = System::Drawing::Size(72, 26);
+			this->displayToolStripMenuItem->Size = System::Drawing::Size(72, 24);
 			this->displayToolStripMenuItem->Text = L"Display";
 			// 
 			// conv1FeaturesToolStripMenuItem
@@ -327,6 +351,20 @@ namespace EmotionClassification {
 			this->conv2FeaturesToolStripMenuItem->Size = System::Drawing::Size(192, 26);
 			this->conv2FeaturesToolStripMenuItem->Text = L"Conv2 Features";
 			this->conv2FeaturesToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::conv2FeaturesToolStripMenuItem_Click);
+			// 
+			// conv3FeaturesToolStripMenuItem
+			// 
+			this->conv3FeaturesToolStripMenuItem->Name = L"conv3FeaturesToolStripMenuItem";
+			this->conv3FeaturesToolStripMenuItem->Size = System::Drawing::Size(192, 26);
+			this->conv3FeaturesToolStripMenuItem->Text = L"Conv3 Features";
+			this->conv3FeaturesToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::conv3FeaturesToolStripMenuItem_Click);
+			// 
+			// conv4FeaturesToolStripMenuItem
+			// 
+			this->conv4FeaturesToolStripMenuItem->Name = L"conv4FeaturesToolStripMenuItem";
+			this->conv4FeaturesToolStripMenuItem->Size = System::Drawing::Size(192, 26);
+			this->conv4FeaturesToolStripMenuItem->Text = L"Conv4 Features";
+			this->conv4FeaturesToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::conv4FeaturesToolStripMenuItem_Click);
 			// 
 			// openFileDialog1
 			// 
@@ -349,7 +387,6 @@ namespace EmotionClassification {
 			this->pictureBox1->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 			this->pictureBox1->TabIndex = 2;
 			this->pictureBox1->TabStop = false;
-			this->pictureBox1->Click += gcnew System::EventHandler(this, &MyForm::pictureBox1_Click);
 			// 
 			// textBox1
 			// 
@@ -492,11 +529,79 @@ namespace EmotionClassification {
 			this->label5->Size = System::Drawing::Size(0, 17);
 			this->label5->TabIndex = 20;
 			// 
+			// button5
+			// 
+			this->button5->Location = System::Drawing::Point(514, 538);
+			this->button5->Name = L"button5";
+			this->button5->Size = System::Drawing::Size(75, 23);
+			this->button5->TabIndex = 21;
+			this->button5->Text = L"Clear";
+			this->button5->UseVisualStyleBackColor = true;
+			this->button5->Click += gcnew System::EventHandler(this, &MyForm::button5_Click);
+			// 
+			// pictureBox5
+			// 
+			this->pictureBox5->Location = System::Drawing::Point(1040, 32);
+			this->pictureBox5->Name = L"pictureBox5";
+			this->pictureBox5->Size = System::Drawing::Size(112, 113);
+			this->pictureBox5->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
+			this->pictureBox5->TabIndex = 22;
+			this->pictureBox5->TabStop = false;
+			this->pictureBox5->Visible = false;
+			this->pictureBox5->Click += gcnew System::EventHandler(this, &MyForm::pictureBox5_Click);
+			// 
+			// pictureBox6
+			// 
+			this->pictureBox6->Location = System::Drawing::Point(1158, 32);
+			this->pictureBox6->Name = L"pictureBox6";
+			this->pictureBox6->Size = System::Drawing::Size(87, 87);
+			this->pictureBox6->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
+			this->pictureBox6->TabIndex = 23;
+			this->pictureBox6->TabStop = false;
+			this->pictureBox6->Visible = false;
+			this->pictureBox6->Click += gcnew System::EventHandler(this, &MyForm::pictureBox6_Click);
+			// 
+			// label6
+			// 
+			this->label6->AutoSize = true;
+			this->label6->Location = System::Drawing::Point(1040, 151);
+			this->label6->Name = L"label6";
+			this->label6->Size = System::Drawing::Size(48, 17);
+			this->label6->TabIndex = 24;
+			this->label6->Text = L"Conv3";
+			this->label6->Visible = false;
+			// 
+			// label7
+			// 
+			this->label7->AutoSize = true;
+			this->label7->Location = System::Drawing::Point(1158, 122);
+			this->label7->Name = L"label7";
+			this->label7->Size = System::Drawing::Size(48, 17);
+			this->label7->TabIndex = 25;
+			this->label7->Text = L"Conv4";
+			this->label7->Visible = false;
+			// 
+			// button6
+			// 
+			this->button6->Location = System::Drawing::Point(869, 538);
+			this->button6->Name = L"button6";
+			this->button6->Size = System::Drawing::Size(75, 23);
+			this->button6->TabIndex = 26;
+			this->button6->Text = L"Test Val";
+			this->button6->UseVisualStyleBackColor = true;
+			this->button6->Click += gcnew System::EventHandler(this, &MyForm::button6_Click);
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1451, 592);
+			this->Controls->Add(this->button6);
+			this->Controls->Add(this->label7);
+			this->Controls->Add(this->label6);
+			this->Controls->Add(this->pictureBox6);
+			this->Controls->Add(this->pictureBox5);
+			this->Controls->Add(this->button5);
 			this->Controls->Add(this->label5);
 			this->Controls->Add(this->button4);
 			this->Controls->Add(this->label4);
@@ -525,11 +630,65 @@ namespace EmotionClassification {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox2))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox3))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox5))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox6))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
+
+
 #pragma endregion
+
+		vector<Rect> detectAndDraw(Mat& img, CascadeClassifier& cascade) {
+			vector<Rect> faces;
+			Mat gray;
+
+			cvtColor(img, gray, COLOR_BGR2GRAY);
+			equalizeHist(gray, gray);
+
+			cascade.detectMultiScale(gray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
+
+			System::Drawing::Bitmap^ b;
+			System::IntPtr ptr(img.ptr());
+			b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
+			pictureBox1->Image = b;
+			return faces;
+		}
+		void printFaces(vector<Rect> faces, Mat frame) {
+			int x, y, width, height;
+
+			x = faces[0].x;
+			y = faces[0].y;
+			width = faces[0].width;
+			height = faces[0].height;
+
+			Rect myROI(x, y, width, height);
+			Mat face = frame(myROI);
+			Mat face2;
+			Color c;
+
+			resize(face, face2, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 1, 1, INTER_AREA);
+
+			System::Drawing::Bitmap^ b;
+			System::IntPtr ptr(face2.ptr());
+			b = gcnew System::Drawing::Bitmap(face2.cols, face2.rows, face2.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
+
+
+			Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
+			pictureBox2->Image = surface;
+			for (int row = 0; row < IMAGE_HEIGHT; row++)
+			{
+				for (int column = 0; column < IMAGE_WIDTH; column++)
+				{
+					c = b->GetPixel(column, row);
+					int index = (0.3 * c.R + 0.59 * c.G + 0.11 * c.B);
+					c = Color::FromArgb(index, index, index);
+					ferImages[row * IMAGE_WIDTH + column] = index;
+					surface->SetPixel(column, row, c);
+				}
+			}
+		}
 
 	private: System::Void weightsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 		//Stream^ mystream;
@@ -589,7 +748,7 @@ namespace EmotionClassification {
 		std::getline(fin, line);
 		model = line;
 		if (model == "model1") {
-
+			button1->Visible = true;
 			std::getline(fin, line);
 			MASK_COUNT_FIRST_LAYER = stoi(line);
 			std::getline(fin, line);
@@ -602,6 +761,7 @@ namespace EmotionClassification {
 			richTextBox1->Text += "FullyC1 :" + DENSE_HIDDEN_LAYER_1 + "\n";
 		}
 		else if (model == "model2") {
+			button1->Visible = false;
 			std::getline(fin, line);
 			MASK_COUNT_FIRST_LAYER = stoi(line);
 			std::getline(fin, line);
@@ -851,54 +1011,31 @@ namespace EmotionClassification {
 				MessageBox::Show("Please choose greater than 48x48 image.");
 			}
 			else {
-				//integer = Width / IMAGE_WIDTH;
-				//fraction = ((float)Width / IMAGE_WIDTH) - (float)integer; // fraction for width
 
-				//tempFrac = fraction;
+				//vector<Rect> face;
+				//CascadeClassifier cascade;
+				//cascade.load(HAAR_CASCADE_PATH);
 
-				//while (true) {
-				//	if (islessequal(tempFrac, 0.1)) {
-				//		break;
-				//	}
-				//	if (isgreaterequal(tempFrac, 0.9)) {
-				//		integer = integer + 1;
-				//		break;
-				//	}
+				//Mat img(Height, Width, CV_8S, raw_intensity);
 
-				//	total = fraction * (float)count;
-				//	integer = total;
-				//	tempFrac = total - (float)integer;
-				//	count++;
+				//equalizeHist(img, img);
+
+				//cascade.detectMultiScale(img, face, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
+
+				//System::Drawing::Bitmap^ b;
+				//System::IntPtr ptr(img.ptr());
+				//b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
+				//pictureBox1->Image = b;
+
+				//printFaces(face, img);
+
+				//if (modelId == 1) {
+				//	cudaRunToolStripMenuItem_Click(sender, e);
+				//}
+				//if (modelId == 2) {
+				//	cudaRunModel2ToolStripMenuItem_Click(sender, e);
 				//}
 
-
-				//for (int row = 0; row < IMAGE_HEIGHT; row++) {
-				//	for (int col = 0; col < IMAGE_WIDTH; col++) {
-				//		for (int y = 0; y < resizeY; y++) {
-				//			for (int x = 0; x < resizeX; x++) {
-				//				mean += raw_intensity[Width * row * (int)resizeY + Width * y + col * (int)resizeX + x];
-				//				if (col % count == 0) {
-
-				//				}
-				//			}
-				//		}
-				//		mean = mean / (resizeY * resizeX);
-				//		buffer[IMAGE_WIDTH * row + col] = round(mean);
-				//		mean = 0.0;
-				//	}
-				//}
-
-
-				Bitmap^ surface = gcnew Bitmap(Width, Height);
-				pictureBox1->Image = surface;
-
-				Color c;
-
-				for (int row = 0; row < Height; row++)
-					for (int col = 0; col < Width; col++) {
-						c = Color::FromArgb(raw_intensity[row * Width + col], raw_intensity[row * Width + col], raw_intensity[row * Width + col]);
-						surface->SetPixel(col, row, c);
-					}
 			}
 		}
 	}
@@ -955,7 +1092,7 @@ namespace EmotionClassification {
 								if (count == 0) {
 									word = line.substr(k, i - k);
 									emotionLabel[lineCount] = stoi(word);
-									richTextBox1->Text += emotionLabel[lineCount] + " \n";
+									//richTextBox1->Text += emotionLabel[lineCount] + " \n";
 								}//take emotions from csv file
 
 								count++;
@@ -1218,7 +1355,6 @@ namespace EmotionClassification {
 
 
 		   }
-
 		   void setValuesForGpuConv2(CpuGpuMem* cg) {
 			   cg->maskWHSize = MASK_SIZE;
 			   cg->maskCount = MASK_COUNT_OUTPUT_LAYER;
@@ -1252,7 +1388,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_1, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuDense1(CpuGpuMem* cg) {
 
 			   cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;
@@ -1271,7 +1406,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_2, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuDense2(CpuGpuMem* cg) {
 
 			   cg->denseInputSize = DENSE_HIDDEN_LAYER_1;
@@ -1283,7 +1417,6 @@ namespace EmotionClassification {
 
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseOutputLayerWeights, cg->denseWeightAllocSize);
 		   }
-
 		   void showFeatureOnPictureBox(float* fResult, int sizeW, int sizeH, int featureCount, int pictureBoxIndex, int indexM) {
 			   LPCTSTR input;
 			   CString str;
@@ -1324,6 +1457,12 @@ namespace EmotionClassification {
 			   if (pictureBoxIndex == 1) {
 				   pictureBox4->Image = surface;
 			   }
+			   if (pictureBoxIndex == 2) {
+				   pictureBox5->Image = surface;
+			   }
+			   if (pictureBoxIndex == 3) {
+				   pictureBox6->Image = surface;
+			   }
 
 			   Color c;
 			   for (int row = 0; row < sizeH; row++)
@@ -1336,7 +1475,6 @@ namespace EmotionClassification {
 			   }
 
 		   }
-
 		   void printGraph(CpuGpuMem* cg, double gpuClock) {
 
 
@@ -1365,28 +1503,16 @@ namespace EmotionClassification {
 				   }
 			   }
 
-			   label4->Text = " ";
-			   if (maxIndex == 0 || max2Index == 0) {
-				   label4->Text += "Kýzgýn ";
-			   }
-			   if (maxIndex == 1 || max2Index == 1) {
-				   label4->Text += "Nefret ";
-			   }
-			   if (maxIndex == 2 || max2Index == 2) {
-				   label4->Text += "Korku ";
-			   }
-			   if (maxIndex == 3 || max2Index == 3) {
-				   label4->Text += "Mutlu ";
-			   }
-			   if (maxIndex == 4 || max2Index == 4) {
-				   label4->Text += "Üzgün ";
-			   }
-			   if (maxIndex == 5 || max2Index == 5) {
-				   label4->Text += "Þaþkýn ";
-			   }
-			   if (maxIndex == 6 || max2Index == 6) {
-				   label4->Text += "Doðal ";
-			   }
+				
+			   string label[7] = {"Kýzgýn ","Nefret ","Korku ","Mutlu ","Üzgün ","Þaþkýn ","Doðal "};
+
+			   System::String^ Str = gcnew System::String(label[maxIndex].c_str());
+			   System::String^ Str2 = gcnew System::String(label[max2Index].c_str());
+
+			   label4->Text = "";
+			   label4->Text += Str;
+			   label4->Text += Str2;
+
 		   }
 
 	private: System::Void cudaRunToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -1399,11 +1525,7 @@ namespace EmotionClassification {
 		//----forConv1
 		setValuesForGpuConv1(cg); // func
 
-
-
 		//cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
-
-
 
 		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
 		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
@@ -1425,11 +1547,6 @@ namespace EmotionClassification {
 		//---------Dense1
 		setValuesForGpuDense1(cg);
 		dense1ExecGPU(cg);
-
-		//richTextBox1->Text = "";
-		//for (int i = 0; i < 128; i++) {
-		//	richTextBox1->Text += cg->cpuDensePtr[i] + "\n";
-		//}
 
 		//---------Dense2
 		setValuesForGpuDense2(cg);
@@ -1494,7 +1611,6 @@ namespace EmotionClassification {
 			   }
 
 		   }
-
 		   void setValuesForGpuModel2Conv2(CpuGpuMem* cg) {
 
 			   cg->maskWHSize = MASK_SIZE;
@@ -1528,7 +1644,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_1, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuModel2Conv3(CpuGpuMem* cg) {
 			   cg->maskWHSize = MASK_SIZE;
 			   cg->maskCount = MASK_COUNT_HIDDEN_LAYER_2;
@@ -1560,7 +1675,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_2, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuModel2Conv4(CpuGpuMem* cg) {
 			   cg->maskWHSize = MASK_SIZE;
 			   cg->maskCount = MASK_COUNT_OUTPUT_LAYER;
@@ -1592,7 +1706,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_3, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuModel2Dense1(CpuGpuMem* cg) {
 
 			   cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;
@@ -1602,6 +1715,8 @@ namespace EmotionClassification {
 			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
 			   cpuGpuFree(cg, maskEnum);
 			   cpuGpuFree(cg, batchEnum);
+			   cpuGpuFree(cg, featureEnum);
+
 			   cg->batchWeightSize = cg->denseOutputSize;
 			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
 
@@ -1610,7 +1725,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_4, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuModel2Dense2(CpuGpuMem* cg) {
 
 			   cg->denseInputSize = DENSE_HIDDEN_LAYER_1;
@@ -1628,7 +1742,6 @@ namespace EmotionClassification {
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_2, cg->denseWeightAllocSize);
 			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_5, cg->batchWeightSize);
 		   }
-
 		   void setValuesForGpuModel2Dense3(CpuGpuMem* cg) {
 
 			   cg->denseInputSize = DENSE_HIDDEN_LAYER_2;
@@ -1673,9 +1786,13 @@ namespace EmotionClassification {
 		setValuesForGpuModel2Conv3(cg);
 		model2Conv3ExecGpu(cg);
 
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_HIDDEN_LAYER_2, 2, pictureBox5Click);
+
 		//---------conv4
 		setValuesForGpuModel2Conv4(cg);
 		model2Conv4ExecGpu(cg);
+
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_HIDDEN_LAYER_2, 3, pictureBox6Click);
 
 		//---------dense1
 		setValuesForGpuModel2Dense1(cg);
@@ -1693,99 +1810,32 @@ namespace EmotionClassification {
 
 		softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
 
+		float max = 0.0;
+		for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+			if (max < cg->cpuDensePtr[i]) {
+				max = cg->cpuDensePtr[i];
+				rank1 = i;
+			}
+		}
+		float max2 = 0.0;
+		for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+			if (cg->cpuDensePtr[i] > max2 && i != rank1) {
+				max2 = cg->cpuDensePtr[i];
+				rank2 = i;
+			}
+		}
+
 		double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 
 		printGraph(cg, gpuClock);
 
 		cpuGpuFree(cg, denseEnum);
 		cpuGpuFree(cg, denseWeightEnum);
-
-
+		
 		cudaError_t result = cudaDeviceSynchronize();
 		assert(result == cudaSuccess);
 
 	}
-
-		   vector<Rect> detectAndDraw(Mat& img, CascadeClassifier& cascade, double scale) {
-			   vector<Rect> faces;
-			   Mat gray, smallImg;
-
-			   cvtColor(img, gray, COLOR_BGR2GRAY); // Convert to Gray Scale
-			   double fx = 1 / scale;
-
-			   // Resize the Grayscale Image 
-			   resize(gray, smallImg, cv::Size(), fx, fx, INTER_LINEAR);
-			   equalizeHist(smallImg, smallImg);
-
-			   // Detect faces of different sizes using cascade classifier 
-			   cascade.detectMultiScale(smallImg, faces, 1.1,
-				   2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
-
-
-			   // Draw circles around the faces
-			   for (size_t i = 0; i < faces.size(); i++)
-			   {
-				   Rect r = faces[i];
-				   Mat smallImgROI;
-				   vector<Rect> nestedObjects;
-				   cv::Point center;
-				   Scalar color = Scalar(255, 0, 0); // Color for Drawing tool
-				   int radius;
-
-				   double aspect_ratio = (double)r.width / r.height;
-
-				   //rectangle(img, cv::Point(cvRound(r.x * scale), cvRound(r.y * scale)),
-					  // cv::Point(cvRound((r.x + r.width - 1) * scale),
-						 //  cvRound((r.y + r.height - 1) * scale)), color, 3, 8, 0);
-
-
-				   smallImgROI = smallImg(r);
-
-			   }
-
-			   System::Drawing::Bitmap^ b;
-
-			   System::IntPtr ptr(img.ptr());
-			   b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
-			   pictureBox1->Image = b;
-			   return faces;
-		   }
-
-		   void printFaces(vector<Rect> faces, Mat frame) {
-			   int x, y, width, height;
-
-			   x = faces[0].x;
-			   y = faces[0].y;
-			   width = faces[0].width;
-			   height = faces[0].height;
-
-			   Rect myROI(x, y, width, height);
-			   Mat face = frame(myROI);
-			   Mat face2;
-			   Color c;
-
-			   resize(face, face2, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 1, 1, INTER_AREA);
-
-			   System::Drawing::Bitmap^ b;
-			   System::IntPtr ptr(face2.ptr());
-			   b = gcnew System::Drawing::Bitmap(face2.cols, face2.rows, face2.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
-
-
-			   Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
-			   pictureBox2->Image = surface;
-			   for (int row = 0; row < IMAGE_HEIGHT; row++)
-			   {
-				   for (int column = 0; column < IMAGE_WIDTH; column++)
-				   {
-					   c = b->GetPixel(column, row);
-					   int index = (0.3 * c.R + 0.59 * c.G + 0.11 * c.B);
-					   c = Color::FromArgb(index, index, index);
-					   ferImages[row * IMAGE_WIDTH + column] = index;
-					   surface->SetPixel(column, row, c);
-				   }
-			   }
-		   }
-
 	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) {
 		openCamera = !openCamera;
 		button4->Enabled = !openCamera;
@@ -1802,7 +1852,13 @@ namespace EmotionClassification {
 
 			cascade.load(HAAR_CASCADE_PATH);
 
+			label1->Visible = true;
+			label2->Visible = true;
+			label3->Visible = true;
+			label4->Visible = true;
 			label5->Visible = true;
+			label6->Visible = true;
+			label7->Visible = true;
 
 			capture.open(0);
 			if (capture.isOpened())
@@ -1818,7 +1874,7 @@ namespace EmotionClassification {
 					if (frame.empty())
 						break;
 					Mat frame1 = frame.clone();
-					faces = detectAndDraw(frame1, cascade, scale);
+					faces = detectAndDraw(frame1, cascade);
 					char c = (char)waitKey(25);
 					if (openCamera == 0) {
 						Bitmap^ surface;
@@ -1826,10 +1882,15 @@ namespace EmotionClassification {
 						pictureBox2->Image = surface;
 						pictureBox3->Image = surface;
 						pictureBox4->Image = surface;
-						label1->Text = "";
-						label2->Text = "";
-						label3->Text = "";
-						label4->Text = "";
+						pictureBox5->Image = surface;
+						pictureBox6->Image = surface;
+						label1->Visible = false;
+						label2->Visible = false;
+						label3->Visible = false;
+						label4->Visible = false;
+						label5->Visible = false;
+						label6->Visible = false;
+						label7->Visible = false;
 						break;
 					}
 					if (faces.size() == 1) {
@@ -1861,7 +1922,6 @@ namespace EmotionClassification {
 			}
 		}
 	}
-
 	private: System::Void button4_Click(System::Object^ sender, System::EventArgs^ e) {
 		openVideo = !openVideo;
 		button3->Enabled = !openVideo;
@@ -1909,7 +1969,14 @@ namespace EmotionClassification {
 				// Capture frames from video and detect faces
 				richTextBox1->Text += "Emotion Classification Started....\n";
 
+
+				label1->Visible = true;
+				label2->Visible = true;
+				label3->Visible = true;
+				label4->Visible = true;
 				label5->Visible = true;
+				label6->Visible = true;
+				label7->Visible = true;
 				while (openVideo)
 				{
 					clock_t tStart = clock();
@@ -1918,7 +1985,7 @@ namespace EmotionClassification {
 					if (frame.empty())
 						break;
 					Mat frame1 = frame.clone();
-					faces = detectAndDraw(frame1, cascade, scale);
+					faces = detectAndDraw(frame1, cascade);
 					if(modelId == 1){
 						fpsWait = 6;
 					}
@@ -1932,10 +1999,15 @@ namespace EmotionClassification {
 						pictureBox2->Image = surface;
 						pictureBox3->Image = surface;
 						pictureBox4->Image = surface;
-						label1->Text = "";
-						label2->Text = "";
-						label3->Text = "";
-						label4->Text = "";
+						pictureBox5->Image = surface;
+						pictureBox6->Image = surface;
+						label1->Visible = false;
+						label2->Visible = false;
+						label3->Visible = false;
+						label4->Visible = false;
+						label5->Visible = false;
+						label6->Visible = false;
+						label7->Visible = false;
 						break;
 					}
 					if (faces.size() == 1) {
@@ -1966,10 +2038,6 @@ namespace EmotionClassification {
 				MessageBox::Show("Please Upload Weights");
 			}
 		}
-
-	}
-
-	private: System::Void pictureBox1_Click(System::Object^ sender, System::EventArgs^ e) {
 	}
 	private: System::Void pictureBox3_Click(System::Object^ sender, System::EventArgs^ e) {
 		pictureBox3Click++;
@@ -2008,6 +2076,44 @@ namespace EmotionClassification {
 		free(batchNormWeight_2);
 	}
 
+private: System::Void button5_Click(System::Object^ sender, System::EventArgs^ e) {
+	richTextBox1->Text = "";
+}
+private: System::Void pictureBox5_Click(System::Object^ sender, System::EventArgs^ e) {
+	pictureBox5Click++;
+}
+private: System::Void pictureBox6_Click(System::Object^ sender, System::EventArgs^ e) {
+	pictureBox5Click++;
+}
+private: System::Void conv3FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+	pictureBox5->Visible = !(pictureBox5->Visible);
+	label6->Visible = !(label6->Visible);
+}
+private: System::Void conv4FeaturesToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+	pictureBox6->Visible = !(pictureBox6->Visible);
+	label7->Visible = !(label7->Visible);
+}
+private: System::Void button6_Click(System::Object^ sender, System::EventArgs^ e) {
 
+	ferTextBoxInput = 0;
+	for (int i = 0; i < lineCount; i++) {
+		cudaRunModel2ToolStripMenuItem_Click(sender,e);
+		ferTextBoxInput++;
+		if (rank1 == emotionLabel[i]) {
+			accTrue++;
+		}
+		else if (rank2 == emotionLabel[i]) {
+			acc2True++;
+		}
+	}
+
+	float result = (int)(((float)accTrue / (float)lineCount) * 1000);
+	result = result / 10;
+	richTextBox1->Text +=  "Rank1 Acc : %" + result + "\n";
+
+	result = (int)(((float)(accTrue+acc2True) / (float)lineCount) * 1000);
+	result = result / 10;
+	richTextBox1->Text += "Rank2 Acc : %" + result + "\n";
+}
 };
 }

@@ -1,53 +1,42 @@
-﻿  Compiling CUDA source file Test.cu...
-  
-  C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3\bin\nvcc.exe" -gencode=arch=compute_61,code=\"sm_61,compute_61\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3\include"  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static -Xptxas -dlcm=cg -g  -D_DEBUG -D"_UNICODE" -D"UNICODE" -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi  /MDd " -o x64\Debug\Test.cu.obj "C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cu" 
-  Test.cu
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cu(318): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-  CpuGpu.cpp
-  Image.cpp
-  MyForm.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1048,47): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1051,47): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1249,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1250,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1268,101): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1269,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1281,99): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1302,51): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1305,51): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1285,15): warning C4101: 'input': unreferenced local variable
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1289,13): warning C4101: 'buffer2': unreferenced local variable
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1405,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1406,85): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1407,79): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1408,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1525,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1526,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1557,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1558,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1589,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1590,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1607,101): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1608,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1625,101): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1626,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1638,99): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1651,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1652,85): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1653,79): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1654,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1745,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1729,12): warning C4101: 'radius': unreferenced local variable
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1767,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1777,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1842,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1900,17): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1941,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1866,12): warning C4101: 'mystream': unreferenced local variable
-  Test.cpp
-C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\Test.cpp(240,6): warning C4101: 'a': unreferenced local variable
-  .NETFramework,Version=v4.5.AssemblyAttributes.cpp
-  Generating Code...
+﻿  MyForm.cpp
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(654,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(675,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(685,16): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1189,47): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1192,47): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1388,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1389,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1406,101): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1407,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1418,99): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1438,51): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1441,51): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1421,15): warning C4101: 'input': unreferenced local variable
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1425,13): warning C4101: 'buffer2': unreferenced local variable
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1530,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1531,85): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1532,79): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1533,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1644,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1645,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1675,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1676,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1706,83): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1707,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1725,101): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1726,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1742,101): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1743,87): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1754,99): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1767,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1768,85): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1769,79): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1770,81): warning C4244: 'argument': conversion from '__int64' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1907,14): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1965,17): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(2024,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(1930,12): warning C4101: 'mystream': unreferenced local variable
+C:\Users\onurt\source\repos\OnurrTascioglu\emotion-classification-recognition\EmotionClassification\MyForm.h(2109,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
 C:\Program Files\opencv\build\include\opencv2\core\cuda.inl.hpp(105): warning C4793: 'cv::cuda::GpuMat::GpuMat': function compiled as native:
   	Found an intrinsic not supported in managed code
 C:\Program Files\opencv\build\include\opencv2\core\cuda.inl.hpp(487): warning C4793: 'cv::cuda::HostMem::HostMem': function compiled as native:

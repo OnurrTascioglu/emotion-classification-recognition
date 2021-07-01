@@ -87,9 +87,6 @@ __global__ void maxPoolingGPU(float* feature, float* tempFeature, int width, int
 
 }
 
-//-----------------------conv2
-
-
 __global__ void convHiddenGPU(float* feature, float* resultImages, float* weights, int fWidth, int fHeight, int maskSize, int maskCount, int maskDim)
 {
 	int id = blockDim.x * blockIdx.x + threadIdx.x;
@@ -110,7 +107,6 @@ __global__ void convHiddenGPU(float* feature, float* resultImages, float* weight
 				int mCol = k % maskSize;
 				int mRow = k / maskSize;
 				tempSum +=	(float)feature[d * fWidth * fHeight + (fWidth * i + j) + mRow * fWidth + mCol] * weights[c * (maskDim * maskSize * maskSize) + d * maskSize * maskSize + k];
-
 			}
 		}
 		resultImages[(c * rMatrixWidth * rMatrixHeight) + i * rMatrixWidth + j] = tempSum + BIAS * weights[maskCount * maskDim * maskSize * maskSize + c];
@@ -181,6 +177,9 @@ void model2Dense3ExecGPU(CpuGpuMem* cg)
 
 	denseGPU << <gridDim, blockDim>> > (cg->gpuTempLayer2,cg->gpuDensePtr, cg->gpuDenseWeightPtr, cg->denseInputSize, cg->denseOutputSize);
 
+	result = cudaFree(cg->gpuTempLayer2);
+	assert(result == cudaSuccess);
+
 	free(cg->cpuDensePtr);
 	cg->cpuDensePtr = (float*)malloc(cg->denseOutputAllocSize);
 	cpuGpuMemCopy(cudaMemcpyDeviceToHost, cg, cg->cpuDensePtr, cg->gpuDensePtr, cg->denseOutputSize * sizeof(float));
@@ -227,6 +226,9 @@ void model2Dense1ExecGPU(CpuGpuMem* cg)
 	assert(result == cudaSuccess);
 
 	flattenGPU << <gridDim, blockDim>> > (cg->gpuTempLayer, cg->gpuTempLayer2, fws, fhs, mc);
+
+	result = cudaFree(cg->gpuTempLayer);
+	assert(result == cudaSuccess);
 
 	threadCount = cg->denseOutputSize;
 	gridDim = (threadCount + blockDim - 1) / blockDim;

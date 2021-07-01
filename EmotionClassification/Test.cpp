@@ -105,37 +105,36 @@ float* convHidden(float* feature, float* weights, int& fWidth, int& fHeight, int
 	return resultImages;
 }
 
-float* batchNormalization(float* feature, float* batchWeights, int width, int height, int featureCount) { //Batch normalize yöntemi
-
-	float sum = 0.0;// aritmetik ortalama için
-	float sDeviation = 0.0; // standart sapma için
-
-	for (int m = 0; m < featureCount; m++) {
-		for (int i = 0; i < width * height; i++)
-		{
-			sum += feature[(m * width * height) + i];
-		}
-		sum = sum / (float)(width * height); // aritmetik ortalama alýnýr
-
-		for (int i = 0; i < width * height; i++)
-		{
-			sDeviation += powf((feature[(m * width * height) + i] - sum), 2);
-		}
-		sDeviation = sqrt(sDeviation / (float)((width * height) - 1));
-
-		for (int i = 0; i < width * height; i++)
-		{
-			feature[(m * width * height) + i] = (feature[(m * width * height) + i] - sum) / sDeviation;
-			feature[(m * width * height) + i] = feature[(m * width * height) + i] * batchWeights[m] + batchWeights[featureCount + m];
-		}
-
-		sum = 0.0;
-		sDeviation = 0.0;
-	}
-
-	return feature;
-}
-
+//float* batchNormalization(float* feature, float* batchWeights, int width, int height, int featureCount) { //Batch normalize yöntemi
+//
+//	float sum = 0.0;// aritmetik ortalama için
+//	float sDeviation = 0.0; // standart sapma için
+//
+//	for (int m = 0; m < featureCount; m++) {
+//		for (int i = 0; i < width * height; i++)
+//		{
+//			sum += feature[(m * width * height) + i];
+//		}
+//		sum = sum / (float)(width * height); // aritmetik ortalama alýnýr
+//
+//		for (int i = 0; i < width * height; i++)
+//		{
+//			sDeviation += powf((feature[(m * width * height) + i] - sum), 2);
+//		}
+//		sDeviation = sqrt(sDeviation / (float)((width * height) - 1));
+//
+//		for (int i = 0; i < width * height; i++)
+//		{
+//			feature[(m * width * height) + i] = (feature[(m * width * height) + i] - sum) / sDeviation;
+//			feature[(m * width * height) + i] = feature[(m * width * height) + i] * batchWeights[m] + batchWeights[featureCount + m];
+//		}
+//
+//		sum = 0.0;
+//		sDeviation = 0.0;
+//	}
+//
+//	return feature;
+//}
 
 float* batchNormalizationConv(float* feature, float* batchWeights, int width, int height, int featureCount) { //Batch normalize yöntemi
 
@@ -156,7 +155,6 @@ float* batchNormalizationConv(float* feature, float* batchWeights, int width, in
 
 	return feature;
 }
-
 
 float* batchNormalizationDense(float* input, float* batchWeights, int inputSize) {
 

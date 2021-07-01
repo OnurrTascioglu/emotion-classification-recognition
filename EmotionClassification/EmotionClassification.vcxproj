@@ -109,7 +109,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <AdditionalOptions>-Xptxas -dlcm=cg %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Xptxas -dlcm=ca %(AdditionalOptions)</AdditionalOptions>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
@@ -135,7 +135,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <AdditionalOptions>-Xptxas -dlcm=cg %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Xptxas -dlcm=ca %(AdditionalOptions)</AdditionalOptions>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
       <MaxRegCount>32</MaxRegCount>
       <FastMath>true</FastMath>
