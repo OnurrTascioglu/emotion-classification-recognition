@@ -276,7 +276,7 @@ plt.xticks(y_pos, objects)
 plt.ylabel('yüzde')
 plt.title('duygu')
 
-plt.show()
+plt.show() 
 
 #2
 
