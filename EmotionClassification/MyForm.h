@@ -640,79 +640,8 @@ namespace EmotionClassification {
 
 #pragma endregion
 
-		vector<Rect> detectAndDraw(Mat& img, CascadeClassifier& cascade) {
-			vector<Rect> faces;
-			Mat gray;
-
-			cvtColor(img, gray, COLOR_BGR2GRAY);
-			equalizeHist(gray, gray);
-
-			cascade.detectMultiScale(gray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
-
-			System::Drawing::Bitmap^ b;
-			System::IntPtr ptr(img.ptr());
-			b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
-			pictureBox1->Image = b;
-			return faces;
-		}
-		void printFaces(vector<Rect> faces, Mat frame) {
-			int x, y, width, height;
-
-			x = faces[0].x;
-			y = faces[0].y;
-			width = faces[0].width;
-			height = faces[0].height;
-
-			Rect myROI(x, y, width, height);
-			Mat face = frame(myROI);
-			Mat face2;
-			Color c;
-
-			resize(face, face2, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 1, 1, INTER_AREA);
-
-			System::Drawing::Bitmap^ b;
-			System::IntPtr ptr(face2.ptr());
-			b = gcnew System::Drawing::Bitmap(face2.cols, face2.rows, face2.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
-
-
-			Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
-			pictureBox2->Image = surface;
-			for (int row = 0; row < IMAGE_HEIGHT; row++)
-			{
-				for (int column = 0; column < IMAGE_WIDTH; column++)
-				{
-					c = b->GetPixel(column, row);
-					int index = (0.3 * c.R + 0.59 * c.G + 0.11 * c.B);
-					c = Color::FromArgb(index, index, index);
-					ferImages[row * IMAGE_WIDTH + column] = index;
-					surface->SetPixel(column, row, c);
-				}
-			}
-		}
 
 	private: System::Void weightsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-		//Stream^ mystream;
-		//OpenFileDialog^ openFileDialog1 = gcnew OpenFileDialog;
-
-		//openFileDialog1->InitialDirectory = "";
-		//openFileDialog1->Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-		//openFileDialog1->FilterIndex = 2;
-		//openFileDialog1->RestoreDirectory = true;
-
-		//if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
-		//{
-		//	if ((mystream = openFileDialog1->OpenFile()) != nullptr)
-		//	{
-		//		// Insert code to read the stream here.
-		//		String^ strfilename = openFileDialog1->InitialDirectory + openFileDialog1->FileName;
-		//		readFile = File::ReadAllText(strfilename);
-
-		//		richTextBox1->Text = readFile;
-
-		//		mystream->Close();
-		//	}
-		//}
-
 
 		FolderBrowserDialog^ folderFileDialog1 = gcnew FolderBrowserDialog();
 		folderFileDialog1->Description = "Please choose file path for your weights.";
@@ -733,9 +662,6 @@ namespace EmotionClassification {
 		std::string input(inputStr);
 		//------ File Path
 
-
-
-
 		// File pointer
 		string filePath = input + "model.txt";
 		fstream fin;
@@ -745,9 +671,9 @@ namespace EmotionClassification {
 		string line;
 		string model;
 
-		std::getline(fin, line);
+		std::getline(fin, line); //ilk satýrda model bilgisi yazar
 		model = line;
-		if (model == "model1") {
+		if (model == "model1") {  //model1 için mimari yapýnýn deðiþkenlere atanmasý ve ekrana yazýlmasý
 			button1->Visible = true;
 			std::getline(fin, line);
 			MASK_COUNT_FIRST_LAYER = stoi(line);
@@ -760,7 +686,7 @@ namespace EmotionClassification {
 			richTextBox1->Text += "Conv2 :" + MASK_COUNT_OUTPUT_LAYER + "\n";
 			richTextBox1->Text += "FullyC1 :" + DENSE_HIDDEN_LAYER_1 + "\n";
 		}
-		else if (model == "model2") {
+		else if (model == "model2") { //model2 için mimari yapýnýn deðiþkenlere atanmasý ve ekrana yazýlmasý
 			button1->Visible = false;
 			std::getline(fin, line);
 			MASK_COUNT_FIRST_LAYER = stoi(line);
@@ -789,55 +715,63 @@ namespace EmotionClassification {
 		}
 		fin.close();
 
-		if (model == "model1") {
-			modelId = 1;
+		if (model == "model1") { // model1 e uygun þekilde aðýrlýklarýn çekilmesi
+			modelId = 1;		 // 2 evriþim 1 tam baðlantýlý gizli, 1 tam baðlantýlý çýkýþ katmaný ve 3 adet batch normalizasyon aðýrlýklarý mevcut	
 
 			//----- input layer cnn
 			filePath = input + "conv2d.csv";
 			delete[] convInputLayerWeights;
-			convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
-			if (readWeightFromFile(convInputLayerWeights, filePath)) error++;
+			convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER]; //1. evriþim katmanýnda maskelerin derinliði yoktur.
+			//Bu yüzden maskelerin boyutlarý [conv1*3*3 + conv1(bias)] þeklindedir.
+
+			if (readWeightFromFile(convInputLayerWeights, filePath)) error++; // readWeightFromFile fonksiyonu csv dosyasýndan aðýrlýklarý okur.
 			else success++;
 
-			int sizeW = IMAGE_WIDTH - MASK_SIZE + 1;
-			int sizeH = IMAGE_HEIGHT - MASK_SIZE + 1;
+			int sizeW = IMAGE_WIDTH - MASK_SIZE + 1;  //Katmanlar için gerekli olan aðýrlýk dizilerinin boyutlarýný hesaplayabilmek için, 
+			int sizeH = IMAGE_HEIGHT - MASK_SIZE + 1; //maxpool ve padding iþlemine baðlý olarak hesaplamalar yapýlýr.
 			sizeW = sizeW / MAX_POOL_STRIDE;
 			sizeH = sizeH / MAX_POOL_STRIDE;
 
 			//----- 2. layer cnn
 			filePath = input + "conv2d_1.csv";
 			delete[] convOutputLayerWeights;
-			convOutputLayerWeights = new float[MASK_COUNT_OUTPUT_LAYER * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_OUTPUT_LAYER];
+			convOutputLayerWeights = new float[MASK_COUNT_OUTPUT_LAYER * MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_OUTPUT_LAYER];	//2. evriþim katmanýnda maskelerin derinliði
+			//vardýr. Çünkü kendisinden önceki katman 3 boyutlu bir feature spacedir. Maskeler derinliði bir önceki katmanýn maske sayýsý kadardýr.
+			//Bu durumda aðýrlýk dizisinin boyutu [conv2*conv1*3*3 + conv2(bias)] þeklindedir.
+
 			if (readWeightFromFile(convOutputLayerWeights, filePath)) error++;
 			else success++;
 
 
-			sizeW = sizeW - MASK_SIZE + 1;
-			sizeH = sizeH - MASK_SIZE + 1;
+			sizeW = sizeW - MASK_SIZE + 1; //Katmanlar için gerekli olan aðýrlýk dizilerinin boyutlarýný hesaplayabilmek için, 
+			sizeH = sizeH - MASK_SIZE + 1; //maxpool ve padding iþlemine baðlý olarak hesaplamalar yapýlýr.
 			sizeW = sizeW / MAX_POOL_STRIDE;
 			sizeH = sizeH / MAX_POOL_STRIDE;
 
 
 			//----- FullyConnected Layer 1
 
-			int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
+			int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH; //sizeTemp Son evriþim katmanýndaki nöron(piksel) sayýsýdýr.
 			filePath = input + "dense.csv";
 			delete[] denseHiddenLayerWeights_1;
-			denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER_1 + DENSE_HIDDEN_LAYER_1];
+			denseHiddenLayerWeights_1 = new float[sizeTemp * DENSE_HIDDEN_LAYER_1 + DENSE_HIDDEN_LAYER_1]; //Son evriþim katmanýndaki nöron(piksel) sayýsý dense katmanýnýn giriþidir.
+			//Bu yüzden tam baðlantýlý katmanýndaki aðýrlýklarýn sayýsý [sizeTemp*dense1 + dense1(bias)] olur.
+
 			if (readWeightFromFile(denseHiddenLayerWeights_1, filePath)) error++;
 			else success++;
 
 			//----- FullyConnected Layer 2
 			filePath = input + "dense_1.csv";
 			delete[] denseOutputLayerWeights;
-			denseOutputLayerWeights = new float[DENSE_OUTPUT_LAYER * DENSE_HIDDEN_LAYER_1 + DENSE_OUTPUT_LAYER];
+			denseOutputLayerWeights = new float[DENSE_OUTPUT_LAYER * DENSE_HIDDEN_LAYER_1 + DENSE_OUTPUT_LAYER]; //Gizli tam baðlantýlý katmanda giriþ*çýkýþ + çýkýþ(bias) kadar aðýrlýk mevcuttur.
 			if (readWeightFromFile(denseOutputLayerWeights, filePath)) error++;
 			else success++;
 
 			//----- 1. batch norm
 			filePath = input + "batch_normalization.csv";
 			delete[] batchNormWeight;
-			batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4];
+			batchNormWeight = new float[MASK_COUNT_FIRST_LAYER * 4]; // Evriþim katmaný çýkýþýnda batch normalizasyonunun, her feature (maske sayýsý kadar) için gamma, beta, 
+			//aritmetik ortalama ve varyans deðerleri vardýr. Bu yüzden dizi boyutu 4 ile çarpýlýr.
 			if (readWeightFromFile(batchNormWeight, filePath)) error++;
 			else success++;
 
@@ -849,7 +783,7 @@ namespace EmotionClassification {
 			else success++;
 
 			//----- 3. batch norm
-			filePath = input + "batch_normalization_2.csv";
+			filePath = input + "batch_normalization_2.csv"; // Dense katmanýnda her bir nöron için 4 adet batch normalizasyonu parametresi vardýr.
 			delete[] batchNormWeight_2;
 			batchNormWeight_2 = new float[DENSE_HIDDEN_LAYER_1 * 4];
 			if (readWeightFromFile(batchNormWeight_2, filePath)) error++;
@@ -861,11 +795,11 @@ namespace EmotionClassification {
 			button2->Enabled = true;
 		}
 
-		else if (model == "model2") {
-			modelId = 2;
-
+		else if (model == "model2") { // model2 e uygun þekilde aðýrlýklarýn çekilmesi
+			modelId = 2;			  // 4 evriþim 2 tam baðlantýlý gizli, 1 tam baðlantýlý çýkýþ katmaný ve 6 adet batch normalizasyon aðýrlýklarý mevcut
+									  // model1'deki iþlemler model2'de tekrarlanýr.
 			//----- input layer cnn
-			filePath = input + "conv2d.csv";
+			filePath = input + "conv2d.csv";  
 			delete[] convInputLayerWeights;
 			convInputLayerWeights = new float[MASK_COUNT_FIRST_LAYER * MASK_SIZE * MASK_SIZE + MASK_COUNT_FIRST_LAYER];
 			if (readWeightFromFile(convInputLayerWeights, filePath)) error++;
@@ -983,61 +917,61 @@ namespace EmotionClassification {
 
 	}
 	private: System::Void pictureToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-		LPCTSTR input;
-		CString str;
-		int Width, Height;
-		float resizeX = 0.0, resizeY = 0.0;
-		long Size;
-		int integer = 0;
-		float fraction = 0.0, tempFrac = 0.0;
-		float total = 0.0;
-		int count = 2;
+		//LPCTSTR input;
+		//CString str;
+		//int Width, Height;
+		//float resizeX = 0.0, resizeY = 0.0;
+		//long Size;
+		//int integer = 0;
+		//float fraction = 0.0, tempFrac = 0.0;
+		//float total = 0.0;
+		//int count = 2;
 
-		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
-			str = openFileDialog1->FileName;
-			input = (LPCTSTR)str;
-			float mean = 0.0;
+		//if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
+		//	str = openFileDialog1->FileName;
+		//	input = (LPCTSTR)str;
+		//	float mean = 0.0;
 
-			//BMP Image Reading
-			bmpColoredImage = LoadBMP(&Width, &Height, &Size, input);
-			raw_intensity = ConvertBMPToIntensity(bmpColoredImage, Width, Height); // BMP Gray picture
+		//	//BMP Image Reading
+		//	bmpColoredImage = LoadBMP(&Width, &Height, &Size, input);
+		//	raw_intensity = ConvertBMPToIntensity(bmpColoredImage, Width, Height); // BMP Gray picture
 
-			BYTE* buffer = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
+		//	BYTE* buffer = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
 
-			resizeX = round((float)Width / IMAGE_WIDTH);
-			resizeY = round((float)Height / IMAGE_HEIGHT);
+		//	resizeX = round((float)Width / IMAGE_WIDTH);
+		//	resizeY = round((float)Height / IMAGE_HEIGHT);
 
-			if (resizeX < 1 || resizeY < 1) {
-				MessageBox::Show("Please choose greater than 48x48 image.");
-			}
-			else {
+		//	if (resizeX < 1 || resizeY < 1) {
+		//		MessageBox::Show("Please choose greater than 48x48 image.");
+		//	}
+		//	else {
 
-				//vector<Rect> face;
-				//CascadeClassifier cascade;
-				//cascade.load(HAAR_CASCADE_PATH);
+		//		//vector<Rect> face;
+		//		//CascadeClassifier cascade;
+		//		//cascade.load(HAAR_CASCADE_PATH);
 
-				//Mat img(Height, Width, CV_8S, raw_intensity);
+		//		//Mat img(Height, Width, CV_8S, raw_intensity);
 
-				//equalizeHist(img, img);
+		//		//equalizeHist(img, img);
 
-				//cascade.detectMultiScale(img, face, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
+		//		//cascade.detectMultiScale(img, face, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE));
 
-				//System::Drawing::Bitmap^ b;
-				//System::IntPtr ptr(img.ptr());
-				//b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
-				//pictureBox1->Image = b;
+		//		//System::Drawing::Bitmap^ b;
+		//		//System::IntPtr ptr(img.ptr());
+		//		//b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
+		//		//pictureBox1->Image = b;
 
-				//printFaces(face, img);
+		//		//printFaces(face, img);
 
-				//if (modelId == 1) {
-				//	cudaRunToolStripMenuItem_Click(sender, e);
-				//}
-				//if (modelId == 2) {
-				//	cudaRunModel2ToolStripMenuItem_Click(sender, e);
-				//}
+		//		//if (modelId == 1) {
+		//		//	cudaRunToolStripMenuItem_Click(sender, e);
+		//		//}
+		//		//if (modelId == 2) {
+		//		//	cudaRunModel2ToolStripMenuItem_Click(sender, e);
+		//		//}
 
-			}
-		}
+		//	}
+		//}
 	}
 	private: System::Void fer2013DSToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
@@ -1052,7 +986,7 @@ namespace EmotionClassification {
 		if (openFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
 			delete[] ferImages;
-			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT * TOTAL_IMAGE];
+			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT * TOTAL_IMAGE]; //Toplam boyut 48*48*GörselSayýsý þeklindedir.
 			emotionLabel = new BYTE[TOTAL_IMAGE];
 
 			if ((mystream = openFileDialog1->OpenFile()) != nullptr)
@@ -1086,22 +1020,19 @@ namespace EmotionClassification {
 					k = 0;
 					count = 0;
 
-					if (lineBool == 1) {
-						for (int i = 0; i < line.length(); i++) {
-							if (line[i].Equals(',')) {
-								if (count == 0) {
-									word = line.substr(k, i - k);
-									emotionLabel[lineCount] = stoi(word);
+					if (lineBool == 1) { //dosyada ilk satýrda kolon isimleri mevcut bu yüzden ilk satýra girmemesi gerekir.
+						for (int i = 0; i < line.length(); i++) { //satýr sonuna kadar harf harf bakýlýr
+							if (line[i].Equals(',')) { 
+								if (count == 0) { 
+									word = line.substr(k, i - k); //ilk virgülden önceki harf kaydedilir.
+									emotionLabel[lineCount] = stoi(word); //Emotion bilgileri alýnýr.
+									k = i + 1;
 									//richTextBox1->Text += emotionLabel[lineCount] + " \n";
-								}//take emotions from csv file
+								}
 
 								count++;
 
-								if (count == 1) {
-									k = i + 1;
-								}
-
-								if (count == 2) {
+								if (count == 2) { //son piksel deðerininden sonra  ' ' karakteri olmadýðý için, virgülden önceki sonuncu piksel deðeri alýnýr.
 									word = line.substr(k, i - k);
 									ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
 									ferIndex++;
@@ -1110,7 +1041,7 @@ namespace EmotionClassification {
 							if (count == 1) {
 								if (line[i].Equals(' ')) {
 									word = line.substr(k, i - k);
-									ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word);
+									ferImages[(imageIndex * 48 * 48) + ferIndex] = stoi(word); //piksel deðerleri okunur
 									ferIndex++;
 									k = i;
 								}
@@ -1135,7 +1066,7 @@ namespace EmotionClassification {
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
 		Int32 myInt = 0;
 
-		if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text,
+		if (System::Text::RegularExpressions::Regex::IsMatch(textBox1->Text, //textbox'a girilecek deðerin koþullarý
 			"^[0-9]{1,6}$"))
 		{
 			myInt = System::Convert::ToInt32(textBox1->Text);
@@ -1156,7 +1087,7 @@ namespace EmotionClassification {
 				int point = IMAGE_HEIGHT * IMAGE_WIDTH * (myInt - 1);
 
 				Color c;
-				for (int row = 0; row < IMAGE_HEIGHT; row++)
+				for (int row = 0; row < IMAGE_HEIGHT; row++) // Test görüntüsünün ekrana basýlmasý 
 				{
 					for (int column = 0; column < IMAGE_WIDTH; column++)
 					{
@@ -1164,7 +1095,7 @@ namespace EmotionClassification {
 						surface->SetPixel(column, row, c);
 					}
 				}
-				runToolStripMenuItem_Click(sender, e);
+				runToolStripMenuItem_Click(sender, e); // Test görüntüsünün cpu ile koþulmasý
 			}
 		}
 		else {
@@ -1183,8 +1114,8 @@ namespace EmotionClassification {
 			   float ratio = 0.0;
 			   float* tempResult = new float[featureCount * sizeH * sizeW];
 
-			   for (int m = 0; m < featureCount; m++) {
-				   for (int i = 0; i < sizeW * sizeH; i++) {
+			   for (int m = 0; m < featureCount; m++) { 
+				   for (int i = 0; i < sizeW * sizeH; i++) { // feature deðerleri 0-255 arasýna
 					   if ((int)fResult[(m * sizeW * sizeH) + i] > max) {
 						   max = fResult[(m * sizeW * sizeH) + i];
 					   }
@@ -1192,10 +1123,10 @@ namespace EmotionClassification {
 						   min = fResult[(m * sizeW * sizeH) + i];
 					   }
 				   }
-				   for (int i = 0; i < sizeW * sizeH; i++) {
+				   for (int i = 0; i < sizeW * sizeH; i++) { // bütün deðerlerden en küçük deðer çýkarýlýr. Bu durumda en küçük deðer 0 olur.
 					   tempResult[(m * sizeW * sizeH) + i] = fResult[(m * sizeW * sizeH) + i] - (min);
 				   }
-				   ratio = (float)(max - min) / 240;
+				   ratio = (float)(max - min) / 254; // Bütün pikseller bu orana bölünür.
 
 				   for (int i = 0; i < sizeW * sizeH; i++) {
 					   buffer[(m * sizeW * sizeH) + i] = (int)(tempResult[(m * sizeW * sizeH) + i] / ratio);
@@ -1203,30 +1134,31 @@ namespace EmotionClassification {
 			   }
 			   str = FEATURE_RESULT_PATH + "conv" + convIndex + "feature.bmp";
 			   input = (LPCTSTR)str;
-			   buffer2 = ConvertIntensityToBMP(buffer, sizeW, sizeH * featureCount, a);
-			   SaveBMP(buffer2, sizeW, sizeH * featureCount, *a, input);
+			   buffer2 = ConvertIntensityToBMP(buffer, sizeW, sizeH * featureCount, a); // intensity, BMP Formatýna çevrilir
+			   SaveBMP(buffer2, sizeW, sizeH * featureCount, *a, input); // BMP resmi kaydeder
 		   }
+
 	private: System::Void runToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 
-		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER;
-		int sizeW = IMAGE_WIDTH;
+		int size = (IMAGE_WIDTH - MASK_SIZE + 1) * (IMAGE_HEIGHT - MASK_SIZE + 1) * MASK_COUNT_FIRST_LAYER; //Giriþ evriþim katmanýn boyutu padding iþlemi yok
+		int sizeW = IMAGE_WIDTH; // sizeW ve sizeH evriþim, maxpooling fonksiyonlarýnda güncellenir.
 		int sizeH = IMAGE_HEIGHT;
 
 		float* fResult = new float[size];
 
-		clock_t tStart = clock();
+		clock_t tStart = clock(); // iþlem süresinin ölçümü için
 		//1. cnn layer
-		fResult = conv1(ferImages, convInputLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput);
-		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER);
-		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, MAX_POOL, MAX_POOL_STRIDE);
+		fResult = conv1(ferImages, convInputLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_FIRST_LAYER, ferTextBoxInput); //1. evriþim katmaný fonksiyonu padding yok!
+		batchNormalizationConv(fResult, batchNormWeight, sizeW, sizeH, MASK_COUNT_FIRST_LAYER); //BatchNormalizasyonu katmaný fonksiyonu
+		reLU(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER); //Relu iþlemi
+		maxPooling(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, MAX_POOL, MAX_POOL_STRIDE); // Maxpooling fonksiyonu
 
-		saveFeatureBMP(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 1);
+		saveFeatureBMP(fResult, sizeW, sizeH, MASK_COUNT_FIRST_LAYER, 1); // 1. evriþim katmaný görsellerini kaydeden fonksiyon
 
 		//2.cnn layer
 		float* fHiddenResult = new float[(sizeW - MASK_SIZE + 1) * (sizeH - MASK_SIZE + 1) * MASK_COUNT_OUTPUT_LAYER];
 		fHiddenResult = convHidden(fResult, convOutputLayerWeights, sizeW, sizeH, MASK_SIZE, MASK_COUNT_OUTPUT_LAYER, MASK_COUNT_FIRST_LAYER);
-		size = sizeW * sizeH * MASK_COUNT_OUTPUT_LAYER;
+		size = sizeW * sizeH * MASK_COUNT_OUTPUT_LAYER; // sizeW ve sizeH her evriþim ve max pool katmanýnda güncellenir!
 
 		saveFeatureBMP(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER, 2);
 
@@ -1234,30 +1166,24 @@ namespace EmotionClassification {
 		reLU(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER);
 		maxPooling(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER, MAX_POOL, MAX_POOL_STRIDE);
 
-
 		//----- FullyConnected Layer 1
-		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER);
+		flatten(fHiddenResult, sizeW, sizeH, MASK_COUNT_OUTPUT_LAYER); //son evriþim katmanýnýn  flatten iþlemi ile dense katmanýna uygun hale getirilir
 		int sizeTemp = MASK_COUNT_OUTPUT_LAYER * sizeW * sizeH;
 		float* denseResult = new float[DENSE_HIDDEN_LAYER_1];
-		denseResult = dense(fHiddenResult, denseHiddenLayerWeights_1, sizeTemp, DENSE_HIDDEN_LAYER_1);
-		batchNormalizationDense(denseResult, batchNormWeight_2, DENSE_HIDDEN_LAYER_1);
+		denseResult = dense(fHiddenResult, denseHiddenLayerWeights_1, sizeTemp, DENSE_HIDDEN_LAYER_1); // dense iþlemini yapan fonksiyon
+		batchNormalizationDense(denseResult, batchNormWeight_2, DENSE_HIDDEN_LAYER_1); //tam baðlantýlý katman için batch iþlemi yapan fonksiyon
 		reLU(denseResult, DENSE_HIDDEN_LAYER_1, 1, 1);
 
-
-
 		//----- FullyConnected Layer 2
-		denseResult = dense(denseResult, denseOutputLayerWeights, DENSE_HIDDEN_LAYER_1, DENSE_OUTPUT_LAYER);
+		denseResult = dense(denseResult, denseOutputLayerWeights, DENSE_HIDDEN_LAYER_1, DENSE_OUTPUT_LAYER); // son dense katmaný
 
-
-
-
-		softmax(denseResult, DENSE_OUTPUT_LAYER);
+		softmax(denseResult, DENSE_OUTPUT_LAYER); // sofmax iþlemi yapan fonksiyon
 		double cpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
 		richTextBox1->Text += "cpu clock time: " + cpuClock + " \n";
 
 		string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
 
-		chart1->Series["Duygular"]->Points->Clear();
+		chart1->Series["Duygular"]->Points->Clear(); //Sonuçlar grafik üzerinde gösterilir.
 		for (int i = 0; i < 7; i++) {
 			System::String^ str = gcnew System::String(emot[i].c_str());
 			chart1->Series["Duygular"]->Points->AddXY(str, denseResult[i]);
@@ -1313,63 +1239,62 @@ namespace EmotionClassification {
 	}
 
 		   void setValuesForGpuConv1(CpuGpuMem* cg) {
-			   cg->imageHeightSize = IMAGE_HEIGHT;
-			   cg->imageWidthSize = IMAGE_WIDTH;
-			   cg->featureWidthSize = IMAGE_WIDTH - MASK_SIZE + 1; // no Padding
-			   cg->featureHeightSize = IMAGE_HEIGHT - MASK_SIZE + 1; // no Padding
-			   cg->maskWHSize = MASK_SIZE;
-			   cg->maskCount = MASK_COUNT_FIRST_LAYER;
-			   cg->maskDim = 1;
+			   cg->imageHeightSize = IMAGE_HEIGHT; //görüntü yüksekliði
+			   cg->imageWidthSize = IMAGE_WIDTH; //görüntü geniþliði
+			   cg->featureWidthSize = IMAGE_WIDTH - MASK_SIZE + 1; // Feature space geniþliði Padding yok
+			   cg->featureHeightSize = IMAGE_HEIGHT - MASK_SIZE + 1; // Feature space geniþliði Padding yok
+			   cg->maskWHSize = MASK_SIZE; //maskenin yükseklik (geniþlik) bilgisi örn.3x3
+			   cg->maskCount = MASK_COUNT_FIRST_LAYER; //ilk katmanýn maske sayýsý 
+			   cg->maskDim = 1;  //giriþ görüntüsünün derinliði tek katmanlý olduðu için maskelerin derinliði 1 olur
 			   cg->pool = MAX_POOL;
 			   cg->stride = MAX_POOL_STRIDE;
-			   cg->batchWeightSize = cg->maskCount;
+			   cg->batchWeightSize = cg->maskCount; //maske sayýsý kadar batch deðerlerimiz var. Her maske 4 batch (gamma,beta,a.o,varyans) deðerine sahiptir
 
-			   cpuGpuAlloc(cg, imageEnum, sizeof(int));
-			   cpuGpuAlloc(cg, featureEnum, sizeof(float));
-			   cpuGpuAlloc(cg, maskEnum, sizeof(float));
-			   cpuGpuAlloc(cg, batchEnum, sizeof(float));//batch for conv1
+
+			   //conv1 için gerekli bellek tahsisleri
+			   cpuGpuAlloc(cg, imageEnum, sizeof(int));  // görüntü için bellek bölgesi tahsisi
+			   cpuGpuAlloc(cg, featureEnum, sizeof(float)); // feature space için bellek bölgesi tahsisi
+			   cpuGpuAlloc(cg, maskEnum, sizeof(float)); // maskeler için bellek bölgesi tahsisi
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float)); // batch aðýrlýklarý için bellek bölgesi tahsisi
 
 			   for (int i = 0; i < cg->maskCount * 4; i++)
-				   cg->cpuBatchPtr[i] = batchNormWeight[i];
+				   cg->cpuBatchPtr[i] = batchNormWeight[i]; //dosyadan okunan aðýrlýklar cg->cpuBatchPtr dizisine atanýr.
 
-			   int* cpu_int32 = (int*)cg->cpuImagePtr;
+			   int* cpu_int32 = (int*)cg->cpuImagePtr; //cg->cpuImagePtr void pointer olduðundan int data tipine setlenmeli. cpu_int32 ile cg->cpuImagePtr ayný bellek bölgesini iþaret eder
 			   for (int i = 0; i < IMAGE_HEIGHT * IMAGE_WIDTH; i++) {
-				   cpu_int32[i] = ferImages[(ferTextBoxInput * IMAGE_WIDTH * IMAGE_HEIGHT) + i]; //
+				   cpu_int32[i] = ferImages[(ferTextBoxInput * IMAGE_WIDTH * IMAGE_HEIGHT) + i]; //Veri setinden istenen görüntü cg->cpuImagePtr ye atanýr.
 			   }
 
 			   for (int i = 0; i < cg->featureWidthSize * cg->featureHeightSize * cg->maskCount; i++) {
-				   cg->cpuFeaturePtr[i] = 0.0;
+				   cg->cpuFeaturePtr[i] = 0.0; //Feature uzayý GPU ya aktarýlmadan önce 0'a setlenir. 
 			   }
 
-			   for (int i = 0; i < MASK_SIZE * MASK_SIZE; i++) {
-				   for (int j = 0; j < cg->maskCount; j++) {
-					   cg->cpuMaskPtr[j * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[i * cg->maskCount + j];
+			   //aðýrlýklarýn sýralanmasý (CPU'daki (test.cpp) iþlemin aynýsý)
+			   for (int i = 0; i < MASK_SIZE * MASK_SIZE; i++) {  //convInputLayerWeights parametresinde aðýrlýklar mevcuttur. Fakat aðýrlýklarýn diziliþ sýrasý pythonda kaydedildiði gibidir.
+				   for (int j = 0; j < cg->maskCount; j++) {	  //Bu atama iþlemi maske gezdirme iþlemlerini daha anlaþýlýr yapabilmek için yapýlmýþtýr. CPU kýsmýnda yapýlan iþlemin aynýsýdýr.
+					   cg->cpuMaskPtr[j * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[i * cg->maskCount + j]; //maskelerin, cg->cpuMaskPtr struct yapýsýna atanmasý
 				   }
 			   }
 
 			   for (int i = 0; i < cg->maskCount; i++) {
-				   cg->cpuMaskPtr[cg->maskCount * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[cg->maskCount * MASK_SIZE * MASK_SIZE + i];
+				   cg->cpuMaskPtr[cg->maskCount * MASK_SIZE * MASK_SIZE + i] = convInputLayerWeights[cg->maskCount * MASK_SIZE * MASK_SIZE + i]; // bias deðerlerinin atanmasý.
 			   }
-
-
-
-
 		   }
 		   void setValuesForGpuConv2(CpuGpuMem* cg) {
-			   cg->maskWHSize = MASK_SIZE;
-			   cg->maskCount = MASK_COUNT_OUTPUT_LAYER;
-			   cg->maskDim = MASK_COUNT_FIRST_LAYER;
-			   cg->batchWeightSize = cg->maskCount;
+			   cg->maskWHSize = MASK_SIZE;  //maskenin yükseklik (geniþlik) bilgisi örn.3x3
+			   cg->maskCount = MASK_COUNT_OUTPUT_LAYER;  //yeni evriþim katmanýnýn boyutu(maske sayýsý)
+			   cg->maskDim = MASK_COUNT_FIRST_LAYER;  //bir önceki katmanýn boyutu Bu katmandaki maskelerin derinliðine eþittir
+			   cg->batchWeightSize = cg->maskCount;  //batch aðýrlýklarý boyutu
 
-			   cpuGpuFree(cg, imageEnum);
-			   cpuGpuFree(cg, maskEnum);
-			   cpuGpuFree(cg, batchEnum);
+			   cpuGpuFree(cg, imageEnum); // Görüntü(image) yalnýzca giriþ evriþim katmanýnda kullanýlýr. Bu katmanda bellek bölgesi serbest býrakýlýr.
+			   cpuGpuFree(cg, maskEnum);  //maskelerin boyutlarý bu katmanda farklý. Bu yüzden yeniden tahsis edilmeli
+			   cpuGpuFree(cg, batchEnum); //batch aðýrlýklarý bu katmanda farklý. Bu yüzden yeniden tahsis edilmeli
 
-			   cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  mask allocation for 2. conv layer
-			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+			   cpuGpuAlloc(cg, maskEnum, sizeof(float)); //  2. katman için maskelerin bellek bölgesi tahsisi
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float)); //  2. katman için batch aðýrlýklarýnýn bellek bölgesi tahsisi
 
 
-			   //weights resorting
+			   //aðýrlýklarýn sýralanmasý (CPU'daki (test.cpp) iþlemin aynýsý)
 			   int count = 0;
 			   for (int i = 0; i < cg->maskWHSize * cg->maskWHSize; i++) {
 				   for (int j = 0; j < cg->maskDim; j++) {
@@ -1380,38 +1305,39 @@ namespace EmotionClassification {
 				   }
 			   }
 
+			   // maskelerdeki bias deðerlerinin atanmasý
 			   for (int i = 0; i < cg->maskCount; i++)
 			   {
 				   cg->cpuMaskPtr[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i] =
 					   convOutputLayerWeights[cg->maskCount * cg->maskDim * cg->maskWHSize * cg->maskWHSize + i];
 			   }
-			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_1, cg->batchWeightSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize); // Maskelerin RAM bellekten GPU belleðine atanmasý 
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_1, cg->batchWeightSize); // Batch aðýrlýklarýnýn RAM bellekten GPU belleðine atanmasý 
 		   }
 		   void setValuesForGpuDense1(CpuGpuMem* cg) {
 
-			   cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;
-			   cg->denseOutputSize = DENSE_HIDDEN_LAYER_1;
+			   cg->denseInputSize = cg->maskCount * cg->featureWidthSize * cg->featureHeightSize;  // dense giriþ katmaný boyu (son evriþim katmanýnýn çýkýþý)
+			   cg->denseOutputSize = DENSE_HIDDEN_LAYER_1; // dense çýkýþ katmaný boyu
 
-			   cpuGpuAlloc(cg, denseEnum, sizeof(float));
-			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
-			   cpuGpuFree(cg, featureEnum);
-			   cpuGpuFree(cg, maskEnum);
-			   cpuGpuFree(cg, batchEnum);
+			   cpuGpuAlloc(cg, denseEnum, sizeof(float)); //dense çýkýþ katmaný bellek tahsisi
+			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float)); //dense aðýrlýklarý bellek tahsisi
+			   cpuGpuFree(cg, featureEnum); //dense katmanýnda feature ve mask dizilerine ihtiyaç kalmadý
+			   cpuGpuFree(cg, maskEnum);    //bu yüzden bu bellek bölgeleri serbest býrakýlmalý
+			   cpuGpuFree(cg, batchEnum);   //batch aðýrlýklarý yeniden boyutlandýrýlmalý
 			   cg->batchWeightSize = cg->denseOutputSize;
-			   cpuGpuAlloc(cg, batchEnum, sizeof(float));
+			   cpuGpuAlloc(cg, batchEnum, sizeof(float));  // batch bellek bölgesi tahsisi
 
-			   cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize);
+			   cudaMemset(cg->gpuDensePtr, 0, cg->denseOutputAllocSize); //Gpu bellekteki gpuDensePtr içeriði 0'a setlenir
 
-			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize);
-			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_2, cg->batchWeightSize);
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuDenseWeightPtr, denseHiddenLayerWeights_1, cg->denseWeightAllocSize); //dense katmaný Ram bellekten GPU belleðine atanýr
+			   cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, batchNormWeight_2, cg->batchWeightSize); //batch katmaný Ram bellekten GPU belleðine atanýr
 		   }
 		   void setValuesForGpuDense2(CpuGpuMem* cg) {
 
-			   cg->denseInputSize = DENSE_HIDDEN_LAYER_1;
-			   cg->denseOutputSize = DENSE_OUTPUT_LAYER;
+			   cg->denseInputSize = DENSE_HIDDEN_LAYER_1; //2. dense katmanýnýn giriþi 
+			   cg->denseOutputSize = DENSE_OUTPUT_LAYER; //2. dense katmanýnýn çýkýþý
 
-			   cpuGpuFree(cg, batchEnum);
+			   cpuGpuFree(cg, batchEnum); 
 			   cpuGpuFree(cg, denseWeightEnum);
 			   cpuGpuAlloc(cg, denseWeightEnum, sizeof(float));
 
@@ -1427,31 +1353,29 @@ namespace EmotionClassification {
 			   int min = 0;
 			   float ratio = 0.0;
 			   float* tempResult = new float[sizeH * sizeW];
-			   if (indexM > featureCount) {
+			   if (indexM > featureCount) { //indexM feature uzayýndaki gösterilecek feature ýn indisidir.
 				   indexM = 0;
 			   }
 
-
-
 			   for (int i = 0; i < sizeW * sizeH; i++) {
 				   if ((int)fResult[(indexM * sizeW * sizeH) + i] > max) {
-					   max = fResult[(indexM * sizeW * sizeH) + i];
+					   max = fResult[(indexM * sizeW * sizeH) + i];  // featureda ki max ve min deðerleri bulunur
 				   }
 				   if ((int)fResult[(indexM * sizeW * sizeH) + i] < min) {
 					   min = fResult[(indexM * sizeW * sizeH) + i];
 				   }
 			   }
 			   for (int i = 0; i < sizeW * sizeH; i++) {
-				   tempResult[i] = fResult[(indexM * sizeW * sizeH) + i] - (min);
+				   tempResult[i] = fResult[(indexM * sizeW * sizeH) + i] - (min); //bütün deðerlerden min deðer çýkarýlýr. Bu durumda en küçük deðer 0, en yüksek deðer max-min deðeri olur
 			   }
-			   ratio = (float)(max - min) / 240;
+			   ratio = (float)(max - min) / 254; //max ile 254 (0-255 piksel aralýðý, hata payý için 254 deðeri kullanýlýr) arasýndaki oran bulunur
 
 			   for (int i = 0; i < sizeW * sizeH; i++) {
-				   buffer[i] = (int)(tempResult[i] / ratio);
+				   buffer[i] = (int)(tempResult[i] / ratio); //bütün deðerler bu orana bölünür. Bu sayede 0-255 arasý piksel deðerleri elde edilmiþ olur.
 			   }
 
 			   Bitmap^ surface = gcnew Bitmap(sizeW, sizeH);
-			   if (pictureBoxIndex == 0) {
+			   if (pictureBoxIndex == 0) {  //istenen picture box'a surface atanýr
 				   pictureBox3->Image = surface;
 			   }
 			   if (pictureBoxIndex == 1) {
@@ -1477,20 +1401,21 @@ namespace EmotionClassification {
 		   }
 		   void printGraph(CpuGpuMem* cg, double gpuClock) {
 
+			   //Formdaki grafik kýsmýnýn düzenlenmesi
 
 			   label3->Text = "Gpu clock time: " + gpuClock + " \n";
 
-			   string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" };
+			   string emot[] = { "Kýzgýn" ,"Nefret" ,"Korku" ,"Mutlu" ,"Üzgün" ,"Þaþkýn" ,"Doðal" }; //duygular
 
 			   chart1->Series["Duygular"]->Points->Clear();
 			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
-				   System::String^ str = gcnew System::String(emot[i].c_str());
-				   chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]);
+				   System::String^ str = gcnew System::String(emot[i].c_str()); // string den String^ ne dönüþüm
+				   chart1->Series["Duygular"]->Points->AddXY(str, cg->cpuDensePtr[i]); //duygu ve deðerini chartta gösterir
 			   }
 
 			   float max = 0.0, max2 = 0.0;
 			   int maxIndex = 0, max2Index = 0;
-			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {
+			   for (int i = 0; i < DENSE_OUTPUT_LAYER; i++) {   //rank 2 ye göre sýralamak için 2 kez max deðer bulunur.
 				   if (cg->cpuDensePtr[i] > max) {
 					   max = cg->cpuDensePtr[i];
 					   maxIndex = i;
@@ -1519,51 +1444,51 @@ namespace EmotionClassification {
 
 		clock_t tStart = clock();
 
-		CpuGpuMem new_cg;
-		CpuGpuMem* cg = &new_cg;
+		CpuGpuMem new_cg;   
+		CpuGpuMem* cg = &new_cg; //CpuGpuMem türünden bir yapý örneði oluþturulur.
 
 		//----forConv1
-		setValuesForGpuConv1(cg); // func
+		setValuesForGpuConv1(cg); //1. evriþim katmaný öncesi gerekli bellek bölgelerinin tahsisi 
 
-		//cpuGpuPin(cg->cpuFeaturePtr, cg->featureAllocSize ); // pin cpu memory size for first layer feature space
+		
 
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); // host to device
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize);
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize);
-		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize);
+		// CPU dan GPU data transferleri
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuImagePtr, cg->cpuImagePtr, cg->imageAllocSize); //görüntü datasý transferi
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuFeaturePtr, cg->cpuFeaturePtr, cg->featureAllocSize); //0 datasýyla dolu Feature space transferi
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuMaskPtr, cg->cpuMaskPtr, cg->maskAllocSize); //maskelerin (aðýrlýklar) transferi
+		cpuGpuMemCopy(cudaMemcpyHostToDevice, cg, cg->gpuBatchPtr, cg->cpuBatchPtr, cg->batchWeightSize); //batch aðýrlýklarý transferi
+
+
+		conv1ExecGPU(cg); //1. evriþim katmanýný koþan GPU köprü fonksiyonu
+
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click); //picbox üzerinde 1. katman Feature space in gözlemlenmesini saðlayan fonksiyon
 
 		//---------conv2
-		conv1ExecGPU(cg); //conv1
+		setValuesForGpuConv2(cg); //2. evriþim katmaný öncesi gerekli bellek bölgelerinin tahsisi 
 
-		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_FIRST_LAYER, 0, pictureBox3Click);
+		convHidden1ExecGPU(cg);  //1. gizli katmaný koþan GPU köprü fonksiyonu
 
-		//---------conv2
-		setValuesForGpuConv2(cg); // conv2
-
-		convHidden1ExecGPU(cg);
-
-		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_OUTPUT_LAYER, 1, pictureBox4Click);
+		showFeatureOnPictureBox(cg->cpuFeaturePtr, cg->featureWidthSize, cg->featureHeightSize, MASK_COUNT_OUTPUT_LAYER, 1, pictureBox4Click); //picbox üzerinde 2. katman Feature space in gözlemlenmesini saðlayan fonksiyon
 
 		//---------Dense1
-		setValuesForGpuDense1(cg);
-		dense1ExecGPU(cg);
+		setValuesForGpuDense1(cg);  //1. dense katmaný öncesi gerekli bellek bölgelerinin tahsisi 
+		dense1ExecGPU(cg);	  //1. dense katmanýný koþan GPU köprü fonksiyonu
 
 		//---------Dense2
-		setValuesForGpuDense2(cg);
-		dense2ExecGPU(cg);
+		setValuesForGpuDense2(cg);  //2. dense katmaný öncesi gerekli bellek bölgelerinin tahsisi 
+		dense2ExecGPU(cg);    //2. dense katmanýný koþan GPU köprü fonksiyonu
 
-		softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);
+		softmax(cg->cpuDensePtr, DENSE_OUTPUT_LAYER);  //softmax iþlemi CPU'da yapýlýr.
 
-		double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC;
+		double gpuClock = (double)(clock() - tStart) / CLOCKS_PER_SEC; //süre ölçümü için gerekli
 
-		printGraph(cg, gpuClock);
+		printGraph(cg, gpuClock);  // form arayüzündeki grafiðin çizimi
 
-		cudaDeviceSynchronize();
+		cudaDeviceSynchronize(); //Cuda cihaz senkronizasyonu için
 
 
-		cpuGpuFree(cg, denseEnum);
+		cpuGpuFree(cg, denseEnum);  // ayrýlan bellek bölgelerinin serbest býrakýlmasý (image, feature, batch gibi dizilar köprü fonksiyonlarda serbest býrakýlmýþtýr.)
 		cpuGpuFree(cg, denseWeightEnum);
-		//cpuGpuUnpin(cg->cpuFeaturePtr, cg->featureAllocSize );
 
 
 
@@ -1836,13 +1761,64 @@ namespace EmotionClassification {
 		assert(result == cudaSuccess);
 
 	}
-	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) {
+
+		   vector<Rect> detectAndDraw(Mat& img, CascadeClassifier& cascade) {
+			   vector<Rect> faces; // yüz datalarý için
+			   Mat gray; 
+
+			   cvtColor(img, gray, COLOR_BGR2GRAY); // görüntünün griye çevrilmesi
+			   equalizeHist(gray, gray); // histogram eþitleme
+
+			   cascade.detectMultiScale(gray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, cv::Size(FACE_DETECTION_SCALE, FACE_DETECTION_SCALE)); // yüzlerin algýlanmasý
+
+			   System::Drawing::Bitmap^ b;
+			   System::IntPtr ptr(img.ptr());
+			   b = gcnew System::Drawing::Bitmap(img.cols, img.rows, img.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
+			   pictureBox1->Image = b; //kameranýn pictureBox1 de gösterilmesi
+			   return faces;
+		   }
+		   void printFaces(vector<Rect> faces, Mat frame) {
+			   int x, y, width, height; 
+
+			   x = faces[0].x; //Yüzün konumlarý iþaretlenir
+			   y = faces[0].y;
+			   width = faces[0].width;
+			   height = faces[0].height;
+
+			   Rect myROI(x, y, width, height); // yüz fotoðraftan ayýklanýr
+			   Mat face = frame(myROI);
+			   Mat face2;
+			   Color c;
+
+			   resize(face, face2, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 1, 1, INTER_AREA); // yüz 48x48 boyutuna çevilir.
+
+			   System::Drawing::Bitmap^ b;
+			   System::IntPtr ptr(face2.ptr());
+			   b = gcnew System::Drawing::Bitmap(face2.cols, face2.rows, face2.step, System::Drawing::Imaging::PixelFormat::Format24bppRgb, ptr);
+
+
+			   Bitmap^ surface = gcnew Bitmap(IMAGE_WIDTH, IMAGE_HEIGHT);
+			   pictureBox2->Image = surface; //pictureBox2 ye yüz basýlýr.
+			   for (int row = 0; row < IMAGE_HEIGHT; row++)
+			   {
+				   for (int column = 0; column < IMAGE_WIDTH; column++)
+				   {
+					   c = b->GetPixel(column, row);
+					   int index = (0.3 * c.R + 0.59 * c.G + 0.11 * c.B);
+					   c = Color::FromArgb(index, index, index);
+					   ferImages[row * IMAGE_WIDTH + column] = index; //fer images datasýna yüz fotoðrafý atanýr.
+					   surface->SetPixel(column, row, c);
+				   }
+			   }
+		   }
+
+	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) { //kamera fonksiyonu
 		openCamera = !openCamera;
 		button4->Enabled = !openCamera;
 
 		if (uploadWeights == 1 && openCamera == 1) {
 			delete[] ferImages;
-			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT];
+			ferImages = new BYTE[IMAGE_WIDTH * IMAGE_HEIGHT]; 
 			VideoCapture capture;
 			Mat frame, image;
 			vector<Rect> faces;
@@ -1866,7 +1842,7 @@ namespace EmotionClassification {
 				// Capture frames from video and detect faces
 				richTextBox1->Text += "Emotion Classification Started....\n";
 
-				while (openCamera)
+				while (openCamera) // kamera açýlýr
 				{
 					clock_t tStart = clock();
 
@@ -2094,7 +2070,7 @@ private: System::Void conv4FeaturesToolStripMenuItem_Click(System::Object^ sende
 	label7->Visible = !(label7->Visible);
 }
 private: System::Void button6_Click(System::Object^ sender, System::EventArgs^ e) {
-
+	//accuracy
 	ferTextBoxInput = 0;
 	for (int i = 0; i < lineCount; i++) {
 		cudaRunModel2ToolStripMenuItem_Click(sender,e);

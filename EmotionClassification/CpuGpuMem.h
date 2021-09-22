@@ -2,34 +2,33 @@
 #include "driver_types.h"
 struct CpuGpuMem {
 
-	void* cpuImagePtr; //for image
-	void* gpuImagePtr;
+	void* cpuImagePtr; //Görüntü için gerekli datalar
+	void* gpuImagePtr; //void veri tipi ile gelen görüntünün data type istenen þekilde seçilebilir
 	int imageWidthSize;
 	int imageHeightSize;
 	long long int imageAllocSize;
 
-	float* cpuFeaturePtr; //for feature
+	float* cpuFeaturePtr; //feature space için gerekli datalar
 	float* gpuFeaturePtr;
-
 	int featureWidthSize;
 	int featureHeightSize;
 	long long int featureAllocSize;
 
-	float* cpuMaskPtr; //for mask
+	float* cpuMaskPtr; //maskeler için gerekli datalar
 	float* gpuMaskPtr;
 	int maskWHSize;
 	long long int maskAllocSize;
 	int maskCount;
 	int maskDim;
 
-	float* gpuBatchPtr;
+	float* gpuBatchPtr; //batch aðýrlýklarý için gerekli datalar
 	float* cpuBatchPtr;
 	long long int batchWeightSize;
 
-	float* gpuTempLayer;
+	float* gpuTempLayer; //Katmanlar arasý data transferi için gerekli geçici gpu bölgeleri
 	float* gpuTempLayer2;
 
-	float* cpuDensePtr;
+	float* cpuDensePtr; //dense katmaný için gerekli datalar
 	float* gpuDensePtr;
 	float* cpuDenseWeightPtr;
 	float* gpuDenseWeightPtr;
@@ -40,14 +39,12 @@ struct CpuGpuMem {
 	long long int denseWeightAllocSize;
 
 
-	int stride;
+	int stride;  //maxpool iþlemi için
 	int pool;
 
-
-	cudaStream_t stream;
 };
 
-enum cpuGpuMemVar
+enum cpuGpuMemVar 
 {
 	imageEnum = 0,
 	featureEnum = 1,

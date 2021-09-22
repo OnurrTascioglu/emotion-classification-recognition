@@ -208,12 +208,12 @@ bool readWeightFromFile(float* convWeight, string filePath) {
 	// File pointer
 	fstream fin;
 
-	fin.open(filePath, ios::in);
+	fin.open(filePath, ios::in); //dosya açýlýr
 	if (!fin.good()) return 1;
 
 	string line;
 
-	while (!fin.eof()) {
+	while (!fin.eof()) {         //Bütün satýrlar okunup convWeight dizisine aktarýlýr
 		std::getline(fin, line);
 		if (line != "") {
 			convWeight[index] = stof(line);
