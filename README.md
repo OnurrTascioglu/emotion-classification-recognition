@@ -483,15 +483,8 @@ Yüzün algılanmasında openCV haarcascade kullanılmıştır. Bu işlemi gerç
 Video ve kameradaki görüntü üzerinde duygu analizi işlemini gerçekleştiren fonksiyonlar MyForm.h dosyasındaki button3_Click(), button4_Click() fonksiyonlarıdır
 
 
-
-
-
- 		
-
-
-
-
-
+Bitirme Projesi olarak yapmış olduğumuz bu çalışmanın tez raporunu inceleyebilirsiniz.
+[Bitirme_Projesi_Tez_Raporu.pdf](https://github.com/OnurrTascioglu/emotion-classification-recognition/files/7212991/Bitirme_Projesi_Tez_Raporu.pdf)
 
 
 
