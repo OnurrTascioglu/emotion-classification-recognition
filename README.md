@@ -1,3 +1,7 @@
+
+![5-min](https://user-images.githubusercontent.com/57223642/141106338-0b7c8aae-fcbe-4aef-9a4c-fb11229dae9f.gif)
+
+
 ## 1-PYTHON KODLARI 
 Python kodları Google Colab üzerinde test edilmiş ve eğitim aşaması yapılmıştır. Kod detayları, açıklama satırı şeklinde belirtilmiştir. Python kodlarına aşağıdan ulaşabilirsiniz. 
 
